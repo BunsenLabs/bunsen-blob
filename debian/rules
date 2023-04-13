@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_installman:
+	sh debian/genman.sh
+	dh_installman
+
+override_dh_clean:
+	dh_clean
+	sh debian/genman.sh --clean

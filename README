@@ -1,19 +1,22 @@
-BLOB - a BunsenLabs GUI Themes Manager
+bunsen-blob
+===========
 
-README
+BLOB is a BunsenLabs GUI Themes Manager
+to save or restore various GUI theme settings.
 
-bl-obthemes: script to save or restore various GUI theme settings
+The command to run is bl-obthemes
 
 Save options are for  Conky(s)
                       Tint2(s)
                       Openbox theme
                       GTK theme
-                      Background (uses Nitrogen or feh, depending which
-                                  has the newer saved bg config file)
+                      Background (using nitrogen, feh, xfdesktop or pcmanfm)
                       Alt Menu (dmenu)
                       Lightdm login gtk greeter
                       X configs (.bashrc, .Xresources)
-                      Terminal emulator config
+                      Terminal emulator config (if available)
+                      Jgmenu theming (if available)
+
 
 Paths are assumed to be BunsenLabs defaults.
 
@@ -25,12 +28,10 @@ A Screenshot is saved (Windows are hidden briefly so the image
                        or Conkys which are running, and a representive
                        menu and lxappearance open)
 
-A time-stamped backup of rc.xml is saved "just in case".
-
-xdotool is used to move the mouse pointer, and assumes the root-menu is shown.
-with "Super + Space" keys, and the right mouse button is set for r-click.
-If you have set these to something else, then edit the "MENUMODIFIER" and
-MOUSECMD variables. Set the variable "KEYDOWN" to where "Preferences" is
+xdotool is used to move the mouse pointer, and assumes the root-menu is shown
+with "Super + Space" keys, and the right mouse button is set for "r-click".
+If you have set these to something else, then edit the "MENUMODIFIER" variable
+and "MOUSECMD" array. Set the variable "KEYDOWN" to where "Preferences" is
 in the root-menu (or anything else you might want displayed).
 
 User saved themes are stored in ~/.config/blob.
