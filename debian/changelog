@@ -1,3 +1,17 @@
+bunsen-blob (12.2-1) boron; urgency=medium
+
+  * Split bunsen-blob from bunsen-utilities.
+  * Add "Help" button.
+  * Select all restore options by default.
+  * Add some Alt key accelerators.
+  * Separate restoring of GTK and Icon themes.
+  * Check if wallpaper to be restored exists.
+  * Various bugfixes and extra comments.
+  [eight.bit.al]
+  * Rename and reorder buttons in Intro and main list windows. 
+
+ -- John Crawley <john@bunsenlabs.org>  Fri, 14 Apr 2023 14:18:39 +0900
+
 bunsen-utilities (12.1-1) boron; urgency=medium
 
   * bin/bl-{conky,tint2}-{edit,manager}: source pangoEscape() from bl-includes
