@@ -8,7 +8,7 @@ bunsen-blob (12.2-1) boron; urgency=medium
   * Check if wallpaper to be restored exists.
   * Various bugfixes and extra comments.
   [eight.bit.al]
-  * Rename and reorder buttons in Intro and main list windows. 
+  * Rename and reorder buttons in Intro and main list windows.
 
  -- John Crawley <john@bunsenlabs.org>  Fri, 14 Apr 2023 14:18:39 +0900
 

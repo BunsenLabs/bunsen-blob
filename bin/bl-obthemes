@@ -371,6 +371,7 @@ firstChecks() {
     esac
 }
 
+# NOTE: not recommended, see: http://mywiki.wooledge.org/ProcessManagement#Starting_a_.22daemon.22_and_checking_whether_it_started_successfully
 # Fork a process to the background, return 1 if it exits soon.
 # Do not use with processes like conky, which can fork themselves to a new pid.
 # Global $FORKWAIT is time to wait before checking if process is still running.
@@ -960,11 +961,11 @@ function getXfdesktop(){
     do
         img=$(xfconf-query -c xfce4-desktop -p "$prop") # img is local to getBg
         [[ -r "$img" ]] && break
-    done <<< "$props"   
+    done <<< "$props"
     debug "\nBackground set with xfdesktop:"
     debug "\t$img"
     echo -e "Background set with xfdesktop:\n\t$img\n" >> "$LISTMSG"
-}    
+}
 
 # get profile currently running pcmanfm is using
 function getPcmanfmProfile(){
@@ -1010,7 +1011,7 @@ function getPcmanfm(){
     debug "\t$img"
     echo -e "Background set with pcmanfm:\n\t$img\n" >> "$LISTMSG"
 }
-        
+
 # generates command array idCmd from window id (hex or decimal)
 # WARNING WM_COMMAND is deprecated: https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html#obsolete_session_manager_conventions
 # TODO switch to using mapfile with pids and /proc/${pid}/cmdline as in getTint()
@@ -1979,7 +1980,7 @@ function restorePcmanfm(){
         return 1
     }
 }
-    
+
 function restoreConky(){    # $1 = $VAL from restoreSettings()
     local conkycmds currDesktop user_conkysession saved_conkysession
     conkycmds="${1//;/$'\n'}" # only used as fallback if there is no sessionfile
@@ -2446,9 +2447,9 @@ restoreSettings() {
                 ;;
             esac
         fi
-    fi    
+    fi
 
-    
+
     select='TRUE'
     while true
     do
@@ -2534,7 +2535,7 @@ restoreSettings() {
                                 ;;
         esac
     done <<< "$CHOICE"
-    
+
     if [[ $restore_gtk != 'false' ]]; then # restoring GTK theme
         if [[ $restore_icons != 'false' ]]; then
             restoreGTK "$restore_gtk" "$restore_icons" # restoreGTK will restore GTK settings including icons
@@ -2548,7 +2549,7 @@ restoreSettings() {
             restoreIcons "$restore_icons" # only icon theme will be set
         fi
     fi
-    
+
     hash jgmenu_run 2>/dev/null && [[ $jgmenu_sync = 'true' ]] && {
         if [[ $jgmenu_sync_ob = 'true' ]]
         then

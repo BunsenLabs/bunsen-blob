@@ -30,7 +30,7 @@ Recommends: colordiff,
 Suggests: meld
 Breaks: bunsen-utilities (<< 12.2-1)
 Replaces: bunsen-utilities (<< 12.2-1)
-Description: A utility to assist management of GUI themes on BunsenLabs
+Description: utility to assist management of GUI themes on BunsenLabs
  A script to save collections of graphic settings of user interfaces,
  and restore them. The user is shown the currently saved collections
  as screenshots and can choose one to restore as their current desktop.
