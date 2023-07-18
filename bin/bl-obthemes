@@ -225,6 +225,11 @@ declare -A icon_pkgs=(
 [Papirus-Bunsen-bluegrey]='bunsen-papirus-icon-theme'
 [Papirus-Bunsen-Dark-grey]='bunsen-papirus-icon-theme'
 [Papirus-Bunsen-Dark-bluegrey]='bunsen-papirus-icon-theme'
+[Papirus-Bunsen-Dark-black]='bunsen-papirus-icon-theme'
+[Numix-Bunsen-Circle-aqua]='bunsen-numix-icon-theme'
+[Numix-Bunsen-Circle-aqua-Light]='bunsen-numix-icon-theme'
+[Numix-Bunsen-Circle-darkred]='bunsen-numix-icon-theme'
+[Numix-Bunsen-Circle-darkred-Light]='bunsen-numix-icon-theme'
 [Adwaita]='adwaita-icon-theme'
 )
 
