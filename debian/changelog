@@ -1,3 +1,10 @@
+bunsen-blob (12.2.1-1) boron; urgency=medium
+
+  * bl-obthemes: add checks for Papirus-Bunsen-Dark-black
+     and Numix-Bunsen-Circle-* icon themes.
+
+ -- John Crawley <john@bunsenlabs.org>  Tue, 18 Jul 2023 16:20:40 +0900
+
 bunsen-blob (12.2-1) boron; urgency=medium
 
   * Split bunsen-blob from bunsen-utilities.
