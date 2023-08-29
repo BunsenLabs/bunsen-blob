@@ -1,3 +1,9 @@
+bunsen-blob (12.3-1) boron; urgency=medium
+
+  * Add Boron-Light-Aqua and Boron-Darkred BLOB collections.
+
+ -- John Crawley <john@bunsenlabs.org>  Tue, 29 Aug 2023 17:02:37 +0900
+
 bunsen-blob (12.2.1-1) boron; urgency=medium
 
   * bl-obthemes: add checks for Papirus-Bunsen-Dark-black
