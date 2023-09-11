@@ -1769,7 +1769,7 @@ function restoreGTK(){
         if yad_warning_option "$NOGTKTXT"; then
             debug "$new_gtk_theme not found, continuing with current GTK theme $current_gtk_theme"
             if [[ $restore_icons = 'true' ]]; then
-                debug "icon theme $new_icon_theme will be restored"
+                debug "icon theme $new_icon_theme will be applied"
                 restoreIcons "$new_icon_theme" || return 1
             fi
             return 0
@@ -1870,8 +1870,8 @@ function restoreOBrc(){
     local themefile rcbkp xsl
     themefile="$THEMEPATH/obtheme.txt"
     [[ -r $RCFILE ]] || {
-        RCFILE="$OLDRCFILE"
         debug "Restoring theme from $themefile to $OLDRCFILE instead of $RCFILE"
+        RCFILE="$OLDRCFILE"
     }
     # backup bl-rc.xml first
     rcbkp="${RCFILE}${BKP_SFX}"
@@ -1932,19 +1932,19 @@ function restoreBg(){    # $1 = $VAL from restoreSettings()
     case $1 in
     NITROGEN)
         debug "Using nitrogen to set wallpaper $img"
-        restoreFiles "$NITROFILE" || { echo "$0: failed to restore $NITROFILE" >&2; return 1; }
+        restoreFiles "$NITROFILE" || { echo "$0: failed to apply $NITROFILE" >&2; return 1; }
         nitrogen --restore
         ;;
     FEH)
         debug "Using feh to set wallpaper $img"
-        restoreFiles "$FEHFILE" || { echo "$0: failed to restore $FEHFILE" >&2; return 1; }
+        restoreFiles "$FEHFILE" || { echo "$0: failed to apply $FEHFILE" >&2; return 1; }
         source "$HOME/$FEHFILE"
         ;;
     XFDESKTOP)
-        restoreXfdesktop || { echo "$0: failed to restore wallpaper with xfdesktop" >&2; return 1; }
+        restoreXfdesktop || { echo "$0: failed to apply wallpaper with xfdesktop" >&2; return 1; }
         ;;
     PCMANFM)
-        restorePcmanfm || { echo "$0: failed to restore wallpaper with pcmanfm" >&2; return 1; }
+        restorePcmanfm || { echo "$0: failed to apply wallpaper with pcmanfm" >&2; return 1; }
         ;;
     esac
 }
@@ -1998,8 +1998,8 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
             for i in **/*conky*.conf **/*conkyrc **/*conky
             do
                 [[ -f "$i" ]] || continue
-                debug "restoring conky file $i"
-                restoreFiles "$i" || echo "$0: failed to restore conky file $i" >&2
+                debug "applying conky file $i"
+                restoreFiles "$i" || echo "$0: failed to apply conky file $i" >&2
             done
             shopt -u globstar dotglob nullglob
         }
@@ -2062,7 +2062,7 @@ function restoreTint2(){    # $1 = $VAL from restoreSettings()
         return 1
     fi
     restoreFiles  '.config/tint2' || { # restoreFiles will restore whole directory with contents
-        echo "$0: failed to restore user/.config/tint2 directory in $THEMEPATH" >&2
+        echo "$0: failed to apply user/.config/tint2 directory in $THEMEPATH" >&2
         return 1
     }
     if hash bl-tint2-session # bl-tint2-session should be present, it comes in bunsen-utilities, with bl-obthemes
@@ -2093,16 +2093,16 @@ function restoreLightdm(){   # need sudo to restore lightdm-gtk-greeter.conf
         ret=( "${PIPESTATUS[@]}" )
         if [[ ${ret[1]} = 0 ]]
         then
-            msg="Restored: lightdm-gtk-greeter.conf"
+            msg="Applied: lightdm-gtk-greeter.conf"
             debug "\n  $msg"
             return 0
         elif [[ ${ret[0]} = 1 ]]
         then
-            msg="Authentication cancelled\n\nlightdm-gtk-greeter.conf was not restored"
+            msg="Authentication cancelled\n\nlightdm-gtk-greeter.conf was not applied"
             echo "$0: $msg" >&2
             return 1
         else
-            msg="Password input failed\n\nlightdm-gtk-greeter.conf was not restored"
+            msg="Password input failed\n\nlightdm-gtk-greeter.conf was not applied"
             echo "$0: $msg" >&2
             yad_warning "$msg"
         fi
@@ -2464,7 +2464,7 @@ restoreSettings() {
             columns+=("$select" "$i")
         done
         CHOICE=$(yad "${yad_args[@]}" --list --checklist \
-            --title="Choose the configs to restore..." \
+            --title="Choose the configs to apply..." \
             --button="Unselect All:2" $CANCEL $OK \
             --height=400 --width=400 \
             --print-column=2 --separator='' \
@@ -2706,11 +2706,11 @@ function displayBlobs(){
     while true ;do
         UpdateDisplayDialog # generates DLGARR aand CURRENTSESSDIR
         CONFIG=$(yad "${yad_args[@]}" --list --title="$TITLE" \
-            --text="Double-click the highlighted selection, or use \"Enter\" key, or the \"Use Selected Blob\" button to apply selected blob\n" \
+            --text="Double-click the highlighted selection, or use \"Enter\" key, or the \"Apply Selected Blob\" button to apply selected themeset to your desktop.\n" \
             --separator=" " \
             --button="_Save Current Blob:3" --button="_View Selected Blob:4" \
-            --button="_Use Selected Blob:0" --button="_Delete Selected Blob:2" \
-            --button="_About:5" --button="gtk-quit:1" \
+            --button="_Apply Selected Blob:0" --button="_Delete Selected Blob:2" \
+            $HLPBTN --button="gtk-quit:1" \
             --always-print-result \
             --width=$DLGWIDTH --height=$DLGHEIGHT --center --image-preview \
             --expand-column=3 \
@@ -2748,12 +2748,12 @@ function displayBlobs(){
                             TEXT="You might have modified your desktop appearance since it was saved as <b>${CURRENTSESSION}</b>.
 These files are now different:
  ${difflist[*]/%/\\n}
-Do you want to save your current session before restoring <b>${themename}</b>?"
-                            yad_question "$TEXT" --button='Save settings first':2 --button='No, restore now':0 --button='View difference(s)':3 --button='Cancel':1
+Do you want to save your current session before applying <b>${themename}</b>?"
+                            yad_question "$TEXT" --button='Save settings first':2 --button='No, apply now':0 --button='View difference(s)':3 --button='Cancel':1
                         else
                             TEXT="You do not seem to have saved your current desktop appearance.
-Do you want to save your current session before restoring <b>${themename}</b>?"
-                            yad_question "$TEXT" --button='Save settings first':2 --button='No, restore now':0 --button='Cancel':1
+Do you want to save your current session before applying <b>${themename}</b>?"
+                            yad_question "$TEXT" --button='Save settings first':2 --button='No, apply now':0 --button='Cancel':1
                         fi
                         case $? in
                             0)
@@ -2830,7 +2830,8 @@ Do you want to save your current session before restoring <b>${themename}</b>?"
                     yad_prompt "Make a selection" "$OK"
                 fi
                 ;;
-            5)  Intro
+            10) yad --button="OK":0 --center --window-icon=distributor-logo-bunsenlabs --text-info --title="The BLOB themes manager" --filename="/usr/share/bunsen/docs/helpfiles/helpfile-blob.txt" --width=900 --height=700 --fontname=Monospace
+                Intro
                 ;;
             *)  if (( RET == 252 ));then
                     echo "$0:  Exited with \"ESC\" key" >&2
