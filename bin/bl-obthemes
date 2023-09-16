@@ -158,7 +158,7 @@ MOUSECMD=(click 3)          # mouse r-click
 
 ### GLOBALS
 USRCONFIGPATH="$HOME/.config/blob"
-SYSCONFIGPATH="/usr/share/bunsen/utilities/blob"
+SYSCONFIGPATH="/usr/share/bunsen/blob/blob"
 CURSESSFILE="$USRCONFIGPATH/current"
 
 ### USER CONFIG VARIABLES TO BE SAVED AND RESTORED
