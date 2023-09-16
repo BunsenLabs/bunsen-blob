@@ -1,3 +1,14 @@
+bunsen-blob (12.4-1) boron; urgency=medium
+
+  * Adjust dialogues slightly, mainly replacing "restore" with "apply".
+  * Adjust Boron blobs to match recent bunsen-configs changes.
+  * Move BLOB system files from /usr/share/bunsen/utilities to
+     /usr/share/bunsen/blob, add backward compatibility symlink.
+  * Update debian/copyright.
+  * Bugfix: handle restoring config file which is a symlink.
+
+ -- John Crawley <john@bunsenlabs.org>  Sat, 16 Sep 2023 21:17:51 +0900
+
 bunsen-blob (12.3-1) boron; urgency=medium
 
   * Add Boron-Light-Aqua and Boron-Darkred BLOB collections.
