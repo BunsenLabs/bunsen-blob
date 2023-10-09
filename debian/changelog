@@ -1,3 +1,9 @@
+bunsen-blob (12.4.2-1) boron; urgency=medium
+
+  * Boron-Darkred: move .bashrc to correct place under user/ directory.
+
+ -- John Crawley <john@bunsenlabs.org>  Mon, 09 Oct 2023 16:03:36 +0900
+
 bunsen-blob (12.4.1-1) boron; urgency=medium
 
   * Update Boron blobs conky and picom.
