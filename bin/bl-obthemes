@@ -152,7 +152,7 @@ done
 
 ### USER SETTINGS FOR THIS SCRIPT
 IMGCMD="bl-image-viewer"    # application command to view screenshot
-MENUMODIFIER="super+space"  # keybind for show root-menu (not used in standard BunsenLabs sessions)
+MENUMODIFIER="super+space"  # keybind to show root-menu
 KEYDOWN=10                  # adjust this for where "Preferences" is in the menu
 MOUSECMD=(click 3)          # mouse r-click
 
@@ -181,7 +181,7 @@ JGMENURC=".config/jgmenu/jgmenurc" # jgmenu theming, not menu content
 
 CONKYPATH=".config/conky"
 TINTPATH=".config/tint2"
-# These will not be saved as-is,
+# These sessions will not be saved as-is,
 # but generated from the running conky/tint2 processes.
 # Saved files will be restored.
 CONKYSESSION="$CONKYPATH/conky-sessionfile"
@@ -211,9 +211,25 @@ declare -A theme_pkgs=(
 [BL-Fever_Room]=bunsen-themes
 [BL-Lithium]=bunsen-themes
 [BL-Lithium-light]=bunsen-themes
+[Boron-aqua]=bunsen-themes
+[Boron-darkred]=bunsen-themes
+[Boron-light-aqua]=bunsen-themes
+[Bunsen-He]=bunsen-themes
 [Bunsen-He-flatish]=bunsen-themes
+[Dragon]=bunsen-themes
 [Yeti]=bunsen-themes
-[Yeti-Lith]=bunsen-themes
+[Be-Penguin]=bunsen-themes-extra
+[Be-Penguin-light]=bunsen-themes-extra
+[Boron-blue]=bunsen-themes-extra
+[Boron-dark]=bunsen-themes-extra
+[Boron-light]=bunsen-themes-extra
+[Boron-light-moss]=bunsen-themes-extra
+[Boron-moss]=bunsen-themes-extra
+[Bunsen-Blackish-Remix]=bunsen-themes-extra
+[Crocus-Remix]=bunsen-themes-extra
+[RainForest]=bunsen-themes-extra
+[SoftWaves]=bunsen-themes-extra
+[Yeti-Lith]=bunsen-themes-extra
 )
 
 # packages needed for particular icon themes
@@ -231,6 +247,41 @@ declare -A icon_pkgs=(
 [Numix-Bunsen-Circle-darkred]='bunsen-numix-icon-theme'
 [Numix-Bunsen-Circle-darkred-Light]='bunsen-numix-icon-theme'
 [Adwaita]='adwaita-icon-theme'
+)
+
+# packages needed for particular BL wallpapers
+declare -A wallpaper_pkgs=(
+[Boron-Emerald-logo-1280x1024.png]='bunsen-images-base'
+[Boron-Emerald-logo-1440x900.png]='bunsen-images-base'
+[Boron-Emerald-logo-1920x1080.png]='bunsen-images-base'
+[Boron-Emerald-plain-1280x1024.png]='bunsen-images-base'
+[Boron-Emerald-plain-1440x900.png]='bunsen-images-base'
+[Boron-Emerald-plain-1920x1080.png]='bunsen-images-base'
+[Boron-dark-1280x1024.png]='bunsen-images-base'
+[Boron-dark-1440x900.png]='bunsen-images-base'
+[Boron-dark-1280x1024.png]='bunsen-images-base'
+[tile.png]='bunsen-images-base'
+[default]='bunsen-images-base'
+[Beam-plain.png]='bunsen-images'
+[Before-Sunrise.jpg]='bunsen-images'
+[Beryllium-1280x1024.jpg]='bunsen-images'
+[Beryllium-1440x900.jpg]='bunsen-images'
+[Beryllium-1920x1080.jpg]='bunsen-images'
+[Fever_Room.jpg]='bunsen-images'
+[grey.png]='bunsen-images'
+[Networks.png]='bunsen-images'
+[Yeti.jpg]='bunsen-images'
+[BL-Beam.png]='bunsen-images-archives'
+[BL-Beam-grey.png]='bunsen-images-archives'
+[BL-Beam-plain.png]='bunsen-image-archivess'
+[BL-Beam-plain-grey.png]='bunsen-images-archives'
+[flame-text-1920x1200-centre-blue.png]='bunsen-images-archives'
+[flame-text-1920x1200-centre.png]='bunsen-images-archives'
+[flame-text-1920x1200-right.png]='bunsen-images-archives'
+[flame-text-2560x1080.png]='bunsen-images-archives'
+[Lithium.png]='bunsen-images-archives'
+[Lithium-grey-logo-only.png]='bunsen-images-archives'
+[Lithium-logo-only.png]='bunsen-images-archives'
 )
 
 ###
@@ -912,22 +963,18 @@ function getNitrogen(){  # get Nitrogen saved backgrounds
         echo "$0: Failed to save nitrogen configs file $NITROFILE" >&2
         return 1
     }
-    if [[ -f $nfile ]];then
-        img="" # img is local to getBg
-        imgfile=""
-        imglist=""
-        while read -r line;do
-            [[ $line = 'file='* ]] || continue
-            imgfile=${line#file=}
-            imglist="${imglist}${imgfile}\n\t"
-            img="${img}${imgfile}"$'\n'
-        done < "$nfile"
-        debug "\nBackgrounds set with Nitrogen, using:\t$CONFIGDIR/user/$NITROFILE"
-        debug "$img"
-        echo -e "Background set with nitrogen:\n\t$imglist\n" >> "$LISTMSG"
-    else
-        echo "$0:  $nfile not found" >&2
-    fi
+    img="" # img is local to getBg
+    imgfile=""
+    imglist=""
+    while read -r line;do
+        [[ $line = 'file='* ]] || continue
+        imgfile=${line#file=}
+        imglist="${imglist}${imgfile}\n\t"
+        img="${img}${imgfile}"$'\n'
+    done < "$nfile"
+    debug "\nBackgrounds set with Nitrogen, using:\t$CONFIGDIR/user/$NITROFILE"
+    debug "$img"
+    echo -e "Background set with nitrogen:\n\t$imglist\n" >> "$LISTMSG"
 }
 
 # FEHFILE is config global
@@ -938,19 +985,15 @@ function getFeh(){    # get Feh saved backgrounds
         echo "$0: Failed to save feh configs file $FEHFILE" >&2
         return 1
     }
-    if [[ -f $ffile ]];then
-        img="" # img is local to getBg
-        # get fields between single quotes
-        while read -r line;do
-            imglist="${imglist}${line}\n\t"
-            img="${img}${line}"$'\n'
-        done < <(grep -o "'[^']*'" "$ffile" | sed "s/'//g" 2>/dev/null)
-        debug "\nBackgrounds set with Feh, using:\t$CONFIGDIR/user/$FEHFILE"
-        debug "$img"
-        echo -e "Background set with feh:\n\t$imglist\n" >> "$LISTMSG"
-    else
-        echo "$0:  $ffile not found" >&2
-    fi
+    img="" # img is local to getBg
+    # get fields between single quotes
+    while read -r line;do
+        imglist="${imglist}${line}\n\t"
+        img="${img}${line}"$'\n'
+    done < <(grep -o "'[^']*'" "$ffile" | sed "s/'//g" 2>/dev/null)
+    debug "\nBackgrounds set with Feh, using:\t$CONFIGDIR/user/$FEHFILE"
+    debug "$img"
+    echo -e "Background set with feh:\n\t$imglist\n" >> "$LISTMSG"
 }
 
 function getXfdesktop(){
@@ -1925,8 +1968,12 @@ function restoreOBrc(){
 # This function might be extended in the future to offer to install
 # image package holding a missing wallpaper.
 function checkWallpaper(){
-    [[ -r "$1" ]] || return 1
-    return 0
+    local imgpath="$1" imgname
+    [[ -r "$imgpath" ]] && {
+        debug "Found wallpaper $imgpath"
+        return 0
+    }
+    return 1
 }
 
 function restoreBg(){    # $1 = $VAL from restoreSettings()
@@ -2552,12 +2599,11 @@ restoreSettings() {
     done <<< "$CHOICE"
 
     if [[ $restore_gtk != 'false' ]]; then # restoring GTK theme
+        jgmenu_sync_gtk=true
         if [[ $restore_icons != 'false' ]]; then
             restoreGTK "$restore_gtk" "$restore_icons" # restoreGTK will restore GTK settings including icons
-            jgmenu_sync_gtk=true
         else
             restoreGTK --noicons "$restore_gtk" # icon theme will be reset to current theme by restoreGTK
-            jgmenu_sync_gtk=true
         fi
     else
         if [[ $restore_icons != 'false' ]]; then
