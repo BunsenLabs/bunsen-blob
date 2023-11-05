@@ -979,10 +979,10 @@ function getNitrogen(){  # get Nitrogen saved backgrounds
         [[ $line = 'file='* ]] || continue
         imgfile=${line#file=}
         imglist="${imglist}${imgfile}\n\t"
-        img="${img}${imgfile}"$'\n'
+        img=${img:-${imgfile}} # save first image only (may be restored by other background setter if nitrogen not available)
     done < "$nfile"
     debug "\nBackgrounds set with Nitrogen, using:\t$CONFIGDIR/user/$NITROFILE"
-    debug "$img"
+    debug "$imglist"
     echo -e "Background set with nitrogen:\n\t$imglist\n" >> "$LISTMSG"
 }
 
@@ -998,10 +998,10 @@ function getFeh(){    # get Feh saved backgrounds
     # get fields between single quotes
     while read -r line;do
         imglist="${imglist}${line}\n\t"
-        img="${img}${line}"$'\n'
+        img="${img:-${line}}" # save first image only (may be restored by other background setter if feh not available)
     done < <(grep -o "'[^']*'" "$ffile" | sed "s/'//g" 2>/dev/null)
     debug "\nBackgrounds set with Feh, using:\t$CONFIGDIR/user/$FEHFILE"
-    debug "$img"
+    debug "$imglist"
     echo -e "Background set with feh:\n\t$imglist\n" >> "$LISTMSG"
 }
 
