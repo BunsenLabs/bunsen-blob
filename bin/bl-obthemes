@@ -257,11 +257,17 @@ declare -A wallpaper_pkgs=(
 [Boron-Emerald-plain-1280x1024.png]='bunsen-images-base'
 [Boron-Emerald-plain-1440x900.png]='bunsen-images-base'
 [Boron-Emerald-plain-1920x1080.png]='bunsen-images-base'
-[Boron-dark-1280x1024.png]='bunsen-images-base'
-[Boron-dark-1440x900.png]='bunsen-images-base'
-[Boron-dark-1280x1024.png]='bunsen-images-base'
+[Ruby-flame-1280x1024.png]='bunsen-images-base'
+[Ruby-flame-1440x900.png]='bunsen-images-base'
+[Ruby-flame-1920x1080.png]='bunsen-images-base'
+[Ruby-plain-1280x1024.png]='bunsen-images-base'
+[Ruby-plain-1440x900.png]='bunsen-images-base'
+[Ruby-plain-1920x1080.png]='bunsen-images-base'
 [tile.png]='bunsen-images-base'
 [default]='bunsen-images-base'
+[Boron-dark-1280x1024.png]='bunsen-images'
+[Boron-dark-1440x900.png]='bunsen-images'
+[Boron-dark-1920x1080.png]='bunsen-images'
 [Beam-plain.png]='bunsen-images'
 [Before-Sunrise.jpg]='bunsen-images'
 [Beryllium-1280x1024.jpg]='bunsen-images'
@@ -298,6 +304,10 @@ ICONPATH_3="/usr/share/icons"
 ICONPATH_4="/usr/local/share/icons"
 iconPaths=("$ICONPATH_1" "$ICONPATH_2" "$ICONPATH_3" "$ICONPATH_4")
 
+wallpath_sys1="/usr/share/images"
+wallpath_sys2="/usr/share/backgrounds"
+wallpath_usr="$HOME/Pictures/wallpapers"
+wallpaths=("$wallpath_sys1" "$wallpath_usr" "$wallpath_sys2")
 
 ### DIALOG VARIABLES
 TITLE="BLOB Themes Manager"
@@ -676,7 +686,6 @@ editKeyfile(){
     }
     return 0
 }
-
 
 # sets globals NUMDIRS and CURRENTSESSION, inside intro() and UpdateDisplayDialog()
 function getCurrent(){      # get name of currently set BLOB config
@@ -2511,7 +2520,6 @@ restoreSettings() {
         fi
     fi
 
-
     select='TRUE'
     while true
     do
@@ -2917,7 +2925,6 @@ function cleanup(){
         saveSettings
     fi
 }
-
 
 ###################### END FUNCTIONS ###################################
 
