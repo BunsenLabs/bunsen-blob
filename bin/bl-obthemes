@@ -812,7 +812,7 @@ function setName(){  # set name of collection, make dir and session settings fil
             :> "$LISTMSG"
             break
         fi
-    done
+    done # print first found file only
     time=$(date)
     if (( del == 1 ));then
         txt="  (Existing session overwritten)"
@@ -1705,8 +1705,7 @@ function checkICONS(){ # check if icon theme is still present
     if [[ -n "${pkg}" ]] && hash bl-install >/dev/null
     then
         debug "\n  Icon theme  $1  was not found\n  Offering to install $pkg..."
-        local INSTICOTXT="Needed icon theme <b>$1</b> not found\n Would you like to install the package <b>${pkg}</b> which contains that theme?"
-        if yad_question "$INSTICOTXT"
+        if yad_question "Needed icon theme <b>$1</b> not found\n Would you like to install the package <b>${pkg}</b> which contains that theme?"
         then
             local retfile retval
             retfile="$( mktemp )"
@@ -1780,8 +1779,7 @@ function restoreIcons(){
     unset KEYS
     debug "Setting icon theme $new_icon_theme found in $new_gtk3_settings"
     checkICONS "$new_icon_theme" || {
-        local NOICOTXT="Icon theme <b>$new_icon_theme</b> not found\n\n  The current icon theme will be used."
-        yad_warning "$NOICOTXT"
+        yad_warning "Icon theme <b>$new_icon_theme</b> not found\n\n  The current icon theme will be used."
         debug "Icon theme $new_icon_theme was not found, continuing to use the current icon theme."
         return 0 # return 1 would trigger an error message
     }
@@ -1823,7 +1821,7 @@ function restoreGTK(){
             debug "$new_gtk_theme not found, continuing with current GTK theme $current_gtk_theme"
             if [[ $restore_icons = 'true' ]]; then
                 debug "icon theme $new_icon_theme will be applied"
-                restoreIcons "$new_icon_theme" || return 1
+                restoreIcons "$new_icon_theme" || return 1 # applying new icon theme without gtk theme ( includes checkICONS )
             fi
             return 0
         else
@@ -2606,7 +2604,7 @@ restoreSettings() {
     declare -A values
     while read -r TAG VAL; do
         case "$TAG" in
-            "[OBTHEME]"     )   labels+=("$PICKOB")       # Order of associative array values is not defined,
+            "[OBTHEME]"     )   labels+=("$PICKOB")       # Order of associative array "values" is not defined,
                                 values["$PICKOB"]="$VAL"  # but indexed array "labels" preserves order of settings.cfg.
                                 ;;
             "[GTK]"         )   labels+=("$PICKGTK")
@@ -2632,7 +2630,7 @@ restoreSettings() {
             "[LIGHTDM]"     )   labels+=("$PICKLDM")
                                 values["$PICKLDM"]="$VAL"
                                 ;;
-            "[EXITRC]"      )   : # do nothing
+            "[EXITRC]"      )   : # ignore obsolete setting
                                 ;;
             "[XFILE]"       )   labels+=("$PICKX")
                                 values["$PICKX"]="$VAL"
