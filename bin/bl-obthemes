@@ -2664,47 +2664,36 @@ restoreSettings() {
 
     # check if wallpaper can be restored by currently running daemon instead of original bgsetter
     img=${values[wallpaper]} # only set by recent versions of BLOB
-    [[ -n $img ]] && {
-        checkWallpaper "$img" || {
-            echo "$0: cannot find wallpaper $img" >&2
-            yad_warning_option "Cannot restore wallpaper $img" || exit
-            img='not_found'
-        }
-    }
     orig_bgsetter=${values["$PICKBG"]} # one of NITROGEN, FEH, XFDESKTOP, PCMANFM or possibly others, from settings.cfg
     if bgsetter="$(checkBgDaemon)"; then # not using nitrogen or feh
-        if [[ -z $img || $img = 'not_found' ]]; then
+        if [[ -n $img ]]; then
+            debug "$bgsetter will use image $img to draw wallpaper, set by $orig_bgsetter"
+            values["$PICKBG"]="$bgsetter"
+        else
             debug "$bgsetter cannot restore wallpaper without an image set in settings.cfg"
             unset_label "$PICKBG" # restore background will not be offered
-        else
-            debug "$bgsetter using image $img to draw wallpaper, set by $orig_bgsetter"
-            values["$PICKBG"]="$bgsetter"
         fi
     else
         debug "not using a background setting daemon"
-        if [[ $img = 'not_found' ]]; then # nitrogen and feh do not need $img to restore, but if $img is set it should be available
-            unset_label "$PICKBG"
-        else
-            debug "can restore background ${img:+$img }with $orig_bgsetter"
-            case "$orig_bgsetter" in
-            NITROGEN)
-                hash nitrogen || {
-                    debug "cannot restore wallpaper: nitrogen not found"
-                    unset_label "$PICKBG"
-                }
-                ;;
-            FEH)
-                hash feh || {
-                    debug "cannot restore wallpaper: feh not found"
-                    unset_label "$PICKBG"
-                }
-                ;;
-            *)
-                debug "cannot restore wallpaper set by $orig_bgsetter"
+        debug "can restore background ${img:+$img }with $orig_bgsetter"
+        case "$orig_bgsetter" in
+        NITROGEN)
+            hash nitrogen || {
+                debug "cannot restore wallpaper: nitrogen not found"
                 unset_label "$PICKBG"
-                ;;
-            esac
-        fi
+            }
+            ;;
+        FEH)
+            hash feh || {
+                debug "cannot restore wallpaper: feh not found"
+                unset_label "$PICKBG"
+            }
+            ;;
+        *)
+            debug "cannot restore wallpaper set by $orig_bgsetter"
+            unset_label "$PICKBG"
+            ;;
+        esac
     fi
 
     select='TRUE'
