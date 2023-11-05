@@ -1974,14 +1974,81 @@ function restoreOBrc(){
 }
 
 # pass path to image as $1
-# This function might be extended in the future to offer to install
-# image package holding a missing wallpaper.
+# returns 0 if OK, 2 if image file available but path is different ($img is updated), 3 if user declines to install needed package, 1 if image cannot be found
 function checkWallpaper(){
-    local imgpath="$1" imgname
+    fixed_img='' # will be inherited by background restoring functions
+    [[ -n $1 ]] || { debug "No image path sent to checkWallpaper()"; return 1; }
+    local imgpath="$1" imgname found_imgpath pkg
     [[ -r "$imgpath" ]] && {
         debug "Found wallpaper $imgpath"
         return 0
     }
+    imgname=${imgpath##*/}
+    debug "$imgpath not found, checking if $imgname is somewhere else on system..."
+    found_imgpath=$(find -L "${wallpaths[@]}" -type f -name "$imgname" -print -quit 2>/dev/null) # print first found file only
+    [[ -n $found_imgpath ]] && {
+        found_imgpath=$( readlink -f "$found_imgpath" )
+        debug "Found $imgname at $found_imgpath"
+        fixed_img=$found_imgpath # img is inherited by restoreBg(), inside restoreSettings()
+        return 2
+    }
+    debug "Unable to find $imgname in the expected places, checking all installed packages..."
+    found_imgpath=$(dpkg-query --search "*/${imgname}" 2>/dev/null) && {
+        pkg=${found_imgpath%%: *}
+        found_imgpath=${found_imgpath#${pkg}: }
+        debug "Package $pkg includes $imgname at $found_imgpath"
+        fixed_img=$found_imgpath
+        return 2
+    }
+    debug "No installed package includes $imgname"
+    pkg="${wallpaper_pkgs[$imgname]}"
+    if [[ -n "${pkg}" ]] && hash bl-install >/dev/null
+    then
+        debug "\n  Wallpaper $imgname was not found\n  Offering to install $pkg..."
+        local yad_wallpaper_q="Needed wallpaper <b>$imgname</b> not found\n Would you like to install the package <b>${pkg}</b> which contains that wallpaper?\n If you don't want to install the package you can continue with the current wallpaper, or exit now."
+        yad_question "${yad_wallpaper_q}" --button='Install package':0 --button='Continue with current wallpaper':2 --button='Exit':1
+        case $? in
+        0)
+            local retfile retval
+            retfile="$( mktemp )"
+            bl-install -f "$retfile" "$pkg"
+            # sleep 0.3 # allow time for bl-install to write to $retfile (now done in bl-install)
+            retval="$(<"$retfile")"
+            rm "$retfile"
+            if [[ "$retval" = 0 ]]
+            then
+                debug "Image package $pkg was installed."
+                found_imgpath=$(dpkg-query --listfiles "$pkg" | grep "/${imgname//./\\.}$") || {
+                    echo "${0}: installed $pkg but $imgname was not found" >/&2
+                    yad_warning "Installed package $pkg but could not find $imgname"
+                    debug "\n  Wallpaper $imgname  was not found in $pkg"
+                    return 1
+                }
+                if [[ "$found_imgpath" = "$imgpath" ]] # check if image path has changed in new package
+                then
+                    debug "$imgname now available at original path $imgpath"
+                    return 0 # $img is correct
+                else
+                    debug "$imgname now available but path has changed to $found_imgpath"
+                    fixed_img=$found_imgpath
+                    return 2
+                fi
+            else
+                yad_warning "Package install failed."
+                debug "Image package ${pkg}: install failed."
+                return 1
+            fi
+            ;;
+        2)
+            debug "Declined install of ${pkg}, so ${imgname} is unavailable."
+            return 3
+            ;;
+        1)
+            exit
+            ;;
+        esac
+    fi
+    debug "\n  Wallpaper $imgname  was not found"
     return 1
 }
 
