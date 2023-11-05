@@ -2897,7 +2897,7 @@ differ () {
     for gui in meld kompare diffuse
     do
         hash "$gui" 2>/dev/null && {
-            "$gui" "$firstfile" "$secondfile"
+            "$gui" "$firstfile" "$secondfile" &
             return
         }
     done
