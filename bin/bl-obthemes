@@ -2072,14 +2072,10 @@ function parseFehfile(){ # get first image set in a feh file
 function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited from restoreSettings()
     case $1 in
     NITROGEN)
-        debug "Using nitrogen to set wallpaper $img"
-        restoreFiles "$NITROFILE" || { echo "$0: failed to apply $NITROFILE" >&2; return 1; }
-        nitrogen --restore
+        restoreNitrogen || { echo "$0: failed to apply wallpaper with nitrogen" >&2; return 1; }
         ;;
     FEH)
-        debug "Using feh to set wallpaper $img"
-        restoreFiles "$FEHFILE" || { echo "$0: failed to apply $FEHFILE" >&2; return 1; }
-        source "$HOME/$FEHFILE"
+        restoreFeh || { echo "$0: failed to apply wallpaper with feh" >&2; return 1; }
         ;;
     XFDESKTOP)
         restoreXfdesktop || { echo "$0: failed to apply wallpaper with xfdesktop" >&2; return 1; }
@@ -2090,14 +2086,98 @@ function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited fr
     esac
 }
 
+function restoreNitrogen(){
+    local nitroimg need_edit=false
+    debug "Using nitrogen to set wallpaper"
+    nitroimg=$(parseNitrofile "$THEMEPATH/user/${NITROFILE}")
+    [[ -n $nitroimg ]] || { echo "$0: failed to parse new $NITROFILE" >&2; return 1; }
+    debug "Image $nitroimg is set in $THEMEPATH/user/${NITROFILE}"
+    checkWallpaper "$nitroimg"
+    case $? in
+    0)
+        debug "Wallpaper image $nitroimg can be used."
+        ;;
+    2)
+        debug "Wallpaper image now found at ${fixed_img}, ${HOME}/${NITROFILE} will be edited after restoring."
+        need_edit=true # image file was found at a different path
+        ;;
+    1)
+        debug "$nitroimg cannot be found"
+        return 1
+        ;;
+    3)
+        debug "Necessary package was not installed, continuing with current wallpaper."
+        return 0
+        ;;
+    esac
+    restoreFiles "$NITROFILE" || { echo "$0: failed to apply $NITROFILE" >&2; return 1; }
+    [[ $need_edit = true ]] && {
+        debug "Replacing $nitroimg with $fixed_img in ${HOME}/${NITROFILE}..."
+        sed -i "s/${nitroimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${NITROFILE}" || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
+        [[ $( parseNitrofile "${HOME}/${NITROFILE}" ) = "${fixed_img}" ]] || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
+    }
+    nitrogen --restore
+}
+
+function restoreFeh(){
+    local fehimg need_edit=false
+    debug "Using feh to set wallpaper"
+    fehimg=$(parseFehfile "$THEMEPATH/user/${FEHFILE}")
+    [[ -n $fehimg ]] || { echo "$0: failed to parse new $FEHFILE" >&2; return 1; }
+    debug "Image $fehimg is set in $THEMEPATH/user/${FEHFILE}"
+    checkWallpaper "$fehimg"
+    case $? in
+    0)
+        debug "Wallpaper image $fehimg can be used."
+        ;;
+    2)
+        debug "Wallpaper image now found at $fixed_img"
+        need_edit=true # image file was found at a different path
+        ;;
+    1)
+        debug "$fehimg cannot be found"
+        return 1
+        ;;
+    3)
+        debug "Necessary package was not installed, continuing with current wallpaper."
+        return 0
+        ;;
+    esac
+    restoreFiles "$FEHFILE" || { echo "$0: failed to apply $FEHFILE" >&2; return 1; }
+    [[ $need_edit = true ]] && {
+        debug "Replacing $fehimg with $fixed_img in ${HOME}/${FEHFILE}..."
+        sed -i "s/${fehimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${FEHFILE}" || { echo "$0: failed to edit $FEHFILE" >&2; return 1; }
+        [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
+    }
+    source "$HOME/$FEHFILE"
+}
+
 function restoreXfdesktop(){
-    local ws # img is inherited from restoreBg()
+    local ws wallpaper=$img # img is inherited from restoreSettings via restoreBg()
     ws=$(xdotool get_desktop)
     pgrep -fx "xfdesktop" -u "$USER" >/dev/null || {
         echo "$0: xfdesktop is not running"
         return 1
     }
-    debug "Using xfdesktop to set wallpaper $img on desktop ${ws}"
+    debug "Using xfdesktop to set wallpaper $wallpaper on desktop ${ws}"
+    checkWallpaper "$wallpaper"
+    case $? in
+    0)
+        debug "Wallpaper image $wallpaper can be used."
+        ;;
+    2)
+        debug "Replacing $wallpaper with ${fixed_img}..."
+        wallpaper=$fixed_img
+        ;;
+    1)
+        debug "$wallpaper cannot be found"
+        return 1
+        ;;
+    3)
+        debug "Necessary package was not installed, continuing with current wallpaper."
+        return 0
+        ;;
+    esac
     props=$(xfconf-query -c xfce4-desktop -l | grep --fixed-strings "/workspace${ws}/last-image")
     [[ -z $props ]] && {
         debug "failed to find xfdesktop property holding /workspace${ws}/last-image"
@@ -2105,24 +2185,47 @@ function restoreXfdesktop(){
     }
     while read -r prop
     do
-        xfconf-query -c xfce4-desktop -p "$prop" --set "$img" || {
-            echo "$0: failed to set $img to $prop" >&2
+        xfconf-query -c xfce4-desktop -p "$prop" --set "$wallpaper" || {
+            echo "$0: failed to set $wallpaper to $prop" >&2
             return 1
         }
     done <<< "$props"
-    xfdesktop --restart
+    if hash bl-restart
+    then
+        bl-restart xfdesktop
+    else
+        xfdesktop --reload
+    fi
 }
 
 function restorePcmanfm(){
-    local re # img is inherited from restoreBg()
+    local re wallpaper=$img # img is inherited from restoreSettings via restoreBg()
     re='pcmanfm[[:blank:]].*--desktop'
     pgrep -fx "$re" -u "$USER" >/dev/null || {
         echo "$0: pcmanfm is not setting the wallpaper"
         return 1
     }
     debug "Using pcmanfm to set wallpaper $img"
-    pcmanfm --set-wallpaper="$img" || {
-        echo "$0: pcmanfm failed to set $img as wallpaper"
+    checkWallpaper "$wallpaper"
+    case $? in
+    0)
+        debug "Wallpaper image ${wallpaper} can be used."
+        ;;
+    2)
+        debug "Replacing ${wallpaper} with ${fixed_img}..."
+        wallpaper=$fixed_img
+        ;;
+    1)
+        debug "$wallpaper cannot be found"
+        return 1
+        ;;
+    3)
+        debug "Necessary package was not installed, continuing with current wallpaper."
+        return 0
+        ;;
+    esac
+    pcmanfm --set-wallpaper="$wallpaper" || {
+        echo "$0: pcmanfm failed to set $wallpaper as wallpaper"
         return 1
     }
 }
