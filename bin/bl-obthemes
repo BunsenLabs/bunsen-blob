@@ -2052,7 +2052,24 @@ function checkWallpaper(){
     return 1
 }
 
-function restoreBg(){    # $1 = $VAL from restoreSettings()
+# $1 is path to nitrogen file
+function parseNitrofile(){ # get first image set in a nitrogen file
+    while read -r line;do
+        [[ $line = 'file='* ]] || continue
+        printf '%s' "${line#file=}"
+        break
+    done < "$1"
+}
+
+# $1 is path to feh file
+function parseFehfile(){ # get first image set in a feh file
+    # get fields between single quotes
+    while read -r line;do
+        printf '%s' "${line}"
+    done < <(grep -o "'[^']*'" "$1" | sed "s/'//g" 2>/dev/null)
+}
+
+function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited from restoreSettings()
     case $1 in
     NITROGEN)
         debug "Using nitrogen to set wallpaper $img"
