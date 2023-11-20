@@ -2307,7 +2307,7 @@ function restoreTint2(){    # $1 = $VAL from restoreSettings()
         echo "$0: failed to apply user/.config/tint2 directory in $THEMEPATH" >&2
         return 1
     }
-    if hash bl-tint2-session # bl-tint2-session should be present, it comes in bunsen-utilities, with bl-obthemes
+    if hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
     then
         bl-tint2-session "$user_tintsession" || {
             echo "$0: failed to start tint2 session $user_tintsession with bl-tint2-session" >&2
