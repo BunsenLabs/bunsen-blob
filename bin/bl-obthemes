@@ -960,6 +960,7 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
         echo -e "Background cannot be set\n" >> "$LISTMSG"
         ;;
     esac
+    img=$( readlink -f "$img" )
     echo "[BACKGROUND] $bgsetter" >> "$SETTINGS"
     echo "(wallpaper) $img" >> "$SETTINGS" # restore functions will be able to access this
 }
