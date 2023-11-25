@@ -1,12 +1,13 @@
-<b>Configuration name: Boron-Light-Aqua</b>	  (Existing session overwritten)
-Saved at Tue 29 Aug 16:11:05 JST 2023
+<b>Configuration name: Boron-Light-Aqua</b>	
+Released with BunsenLabs Boron.
+Saved at Tue 21 Nov 15:06:33 JST 2023
 
 Openbox theme:  Boron-light-aqua
 GTK theme:  Boron-light-aqua
 Icon Theme: Numix-Bunsen-Circle-aqua-Light
 
 Background set with nitrogen:
-	/usr/share/images/bunsen/wallpapers/default/Boron-Emerald-logo-1920x1080.png
+	/usr/share/images/bunsen/wallpapers/default/Boron-Emerald-logo-1440x900.png
 	
 
 Running Conkys:	

@@ -1,0 +1,33 @@
+<b>Configuration name: Boron-Aqua</b>
+Released with BunsenLabs Boron
+Saved on Mon 20 Nov 17:52:13 JST 2023
+
+Openbox theme:  Boron-aqua
+GTK theme:  Boron-aqua
+Icon Theme: Numix-Bunsen-Circle-aqua
+
+Background set with nitrogen:
+	/usr/share/images/bunsen/wallpapers/default/Boron-Emerald-logo-1440x900.png
+
+
+Running Conkys:
+	~/.config/conky/BL-Boron-conky.conf
+
+Running Tint2s:
+	~/.config/tint2/boron-dark-vertical.tint2rc
+
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Bash config:  ~/.bashrc
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf
+

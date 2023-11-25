@@ -1,12 +1,13 @@
 <b>Configuration name: Boron-Darkred</b>	
 Released with BunsenLabs Boron
+Saved on Mon 20 Nov 18:05:16 JST 2023
 
 Openbox theme:  Boron-darkred
 GTK theme:  Boron-darkred
 Icon Theme: Numix-Bunsen-Circle-darkred
 
 Background set with nitrogen:
-	/usr/share/images/bunsen/wallpapers/default/Boron-dark-1920x1080.png
+	/usr/share/images/bunsen/wallpapers/default/Ruby-flame-1440x900.png
 	
 
 Running Conkys:	

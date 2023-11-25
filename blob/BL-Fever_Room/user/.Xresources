@@ -47,7 +47,7 @@ URxvt.foreground: #CCB9A3
 !URxvt.foreground: #ADD8E6
 
 ! scrollback buffer lines - 65535 is max (64 is default)
-URxvt.saveLines: 16384
+URxvt.saveLines: 5000
 
 ! True Transparency, opacity percentage set in square brackets before URxvt.background colour
 URxvt.depth: 32

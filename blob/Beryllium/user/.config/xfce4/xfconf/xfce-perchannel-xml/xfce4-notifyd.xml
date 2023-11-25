@@ -14,6 +14,7 @@
     </property>
   </property>
   <property name="primary-monitor" type="uint" value="0"/>
-  <property name="log-level" type="uint" value="0"/>
+  <property name="log-level" type="uint" value="1"/>
   <property name="log-level-apps" type="uint" value="0"/>
+  <property name="notification-log" type="bool" value="true"/>
 </channel>

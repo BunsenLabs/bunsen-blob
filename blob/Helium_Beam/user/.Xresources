@@ -14,10 +14,15 @@ Xft.lcdfilter: lcddefault
 
 ! urxvt -------------------------------------------
 
+! "monospace" is an alias defined in ~/.config/fontconfig/fonts.conf
 URxvt.font: xft:Monospace:size=11
 URxvt.boldFont: xft:Monospace:Bold:size=11
-URxvt.letterSpace: -2
 ! Add fallback fonts as laid out in `man 1 urxvt` under "font:" in the RESOURCES section
+
+URxvt.letterSpace: -2
+!URxvt.lineSpace: 1
+! The letterSpace and lineSpace settings are highly dependent on the font(s) configured above
+! and should be changed or removed as necessary.
 
 ! Window size and position
 !URxvt*geometry: 60x22+50+100
@@ -39,7 +44,7 @@ URxvt.background: [90]#082B4A
 URxvt.foreground: #ADD8E6
 
 ! scrollback buffer lines - 65535 is max (64 is default)
-URxvt.saveLines: 16384
+URxvt.saveLines: 5000
 
 ! True Transparency, opacity percentage set in square brackets before URxvt.background colour
 URxvt.depth: 32

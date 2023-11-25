@@ -1,18 +1,30 @@
 <b>Configuration name: BL-Fever_Room</b>
-Released with BunsenLabs Beryllium
+Released with BunsenLabs Boron
 
-Openbox theme:  BL-Fever_Room\n
-GTK theme:  BL-Fever_Room;  Icon Theme: Adwaita\n
+Openbox theme:  BL-Fever_Room
+GTK theme:  BL-Fever_Room
+Icon Theme: Adwaita\
+
 Background set with nitrogen:
 	/usr/share/images/bunsen/wallpapers/default/Fever_Room.jpg
 	
+
 Running Conkys:
 	~/.config/conky/BL-Fever_Room-conky.conf
 
 Running Tint2s:	
 	~/.config/tint2/fever_room.tint2rc
 
-dmenu config:  ~/.config/dmenu/dmenu-bind.sh\n
-Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf\n(password will be needed to restore)\n
-X config:  ~/.Xresources\n
-Lxterminal config:  ~/.config/lxterminal/lxterminal.conf\n
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf
+

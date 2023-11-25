@@ -1,18 +1,28 @@
 <b>Configuration name: Yeti</b>
-Released with BunsenLabs Beryllium
+Released with BunsenLabs Boron
 
-Openbox theme:  Yeti\n
-GTK theme:  Yeti;  Icon Theme: Papirus-Bunsen-Dark-bluegrey\n (When restoring, Thunar will be restarted to use new theme.)\n
+Openbox theme:  Yeti
+GTK theme:  Yeti
+Icon Theme: Papirus-Bunsen-Dark-bluegrey
+
 Background set with nitrogen:
-	~/Pictures/wallpapers/bunsen/default/Yeti.jpg;
-	
+	~/Pictures/wallpapers/bunsen/default/Yeti.jpg
+
 Running Conkys:
 	~/.config/conky/BL-Yeti-conky.conf
 
 Running Tint2s:
 	~/.config/tint2/yeti.tint2rc
 
-dmenu config:  ~/.config/dmenu/dmenu-bind.sh\n
-Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf\n(password will be needed to restore)\n
-X config:  ~/.Xresources\n
-Lxterminal config:  ~/.config/lxterminal/lxterminal.conf\n
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf

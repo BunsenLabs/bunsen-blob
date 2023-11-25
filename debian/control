@@ -22,7 +22,8 @@ Depends: ${misc:Depends},
   xsettingsd,
   yad
 Conflicts: bunsen-lock, bunsen-user-setup
-Recommends: colordiff,
+Recommends: bunsen-pipemenus,
+  colordiff,
   conky-all,
   nitrogen | feh,
   openbox,

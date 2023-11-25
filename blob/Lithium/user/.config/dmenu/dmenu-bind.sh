@@ -5,7 +5,7 @@
 ## The script bl-user-setup copies them to the user $HOME directory on first login.
 ## See more info with command 'bl-user-setup --help'
 #
-# BL-Lithiumium theme colours
+# BL-Lithium theme colours
 #
 # written for BunsenLabs by damo <damo@bunsenlabs.org> May 2015
 # modified July 2017

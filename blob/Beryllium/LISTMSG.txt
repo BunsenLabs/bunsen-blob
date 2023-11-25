@@ -1,21 +1,33 @@
-<b>Configuration name: Beryllium</b>	
-Released with BunsenLabs Beryllium
+<b>Configuration name: Beryllium</b>
+Released with BunsenLabs Boron
+Saved at Tue 21 Nov 15:17:48 JST 2023
 
 Openbox theme:  Dragon
-GTK theme:  Dragon;  Icon Theme: Papirus-Bunsen-Dark-black\n
+GTK theme:  Dragon
+Icon Theme: Papirus-Bunsen-Dark-black
+
 Background set with nitrogen:
 	/usr/share/images/bunsen/wallpapers/default/Beryllium-1440x900.jpg
 	
+
 Running Conkys:	
 	~/.config/conky/BL-Beryllium-conky.conf
 
 Running Tint2s:	
 	~/.config/tint2/beryllium.tint2rc
 
-dmenu config:  ~/.config/dmenu/dmenu-bind.sh\n
-Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf\n(password will be needed to restore)\n
-X config:  ~/.Xresources\n
-Bash config:  ~/.bashrc\n
-Compositor settings: ~/.config/picom.conf\n
-jgmenu settings: ~/.config/jgmenu/jgmenurc\n
-Lxterminal config:  ~/.config/lxterminal/lxterminal.conf\n
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Bash config:  ~/.bashrc
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf
+
