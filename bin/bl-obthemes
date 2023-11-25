@@ -2770,6 +2770,9 @@ restoreSettings() {
             "$PICKJGMENU"   )   restoreFiles "$JGMENURC"
                                 jgmenu_sync=false # no need for openbox or gtk theme syncing, theme is provided in $JGMENURC
                                 ;;
+            "$PICKCOMP"     )   restoreFiles "$VAL"
+                                hash bl-compositor 2>/dev/null && bl-compositor --restart # bl-compositor is in bunsen-pipemenus
+                                ;;
             *               )   if [[ $VAL = '%dconf%'* ]] # dconf directories come prefixed with %dconf% in checkTerm (and others in future?)
                                 then
                                     restoreDconf "${VAL#'%dconf%'}" "$label"
