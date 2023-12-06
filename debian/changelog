@@ -1,3 +1,15 @@
+bunsen-blob (12.5-1) boron; urgency=medium
+
+  * Improve checking for wallpaper images and support 
+     other background setter than original.
+  * Search for wallpaper file if not found in expected place.
+  * Add package lookups for themes and wallpapers if not found,
+     offer to install.
+  * Add compositor settings restore option.
+  * Update all blobs to use current settings.
+
+ -- John Crawley <john@bunsenlabs.org>  Wed, 06 Dec 2023 15:21:54 +0900
+
 bunsen-blob (12.4.2-1) boron; urgency=medium
 
   * Boron-Darkred: move .bashrc to correct place under user/ directory.
