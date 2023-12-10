@@ -8,7 +8,7 @@ bunsen-blob (12.5.1-1) boron; urgency=medium
 
 bunsen-blob (12.5-1) boron; urgency=medium
 
-  * Improve checking for wallpaper images and support 
+  * Improve checking for wallpaper images and support
      other background setter than original.
   * Search for wallpaper file if not found in expected place.
   * Add package lookups for themes and wallpapers if not found,
