@@ -1,3 +1,10 @@
+bunsen-blob (12.5.2-1) boron; urgency=medium
+
+  * Bugfix: correct package name bunsen-images-archives
+     for image BL-beam-plain.png.
+
+ -- John Crawley <john@bunsenlabs.org>  Wed, 10 Jan 2024 16:18:59 +0900
+
 bunsen-blob (12.5.1-1) boron; urgency=medium
 
   * tint2: set "panel_monitor = 1" on vertical panels.
