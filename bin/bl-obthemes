@@ -487,7 +487,7 @@ function upgradeBlobs(){
             [[ -n $t2file ]] || continue
             t2name=${t2file##*/}
             [[ $t2name = *'.tint2rc' || $t2name = tint2rc ]] && {
-                VAL+=${t2file};
+                VAL+=${t2file}';';
                 continue # already using new name style
             }
             newt2name=${t2name#tint2rc-}.tint2rc
@@ -496,27 +496,27 @@ function upgradeBlobs(){
                 debug "Renaming $t2name to $newt2name in ${i}/user/$TINTPATH"
                 mv "${i}/user/$TINTPATH/$t2name" "${i}/user/$TINTPATH/$newt2name" || {
                     echo "$0: Upgrading ${i}: WARNING Cannot rename $i/user/$TINTPATH/$t2name" >&2
-                    VAL+=${t2file};
+                    VAL+=${t2file}';';
                 }
-                VAL+=$HOME/$TINTPATH/${newt2name};
+                VAL+=$HOME/$TINTPATH/${newt2name}';';
             else
                 [[ -f $HOME/$TINTPATH/$newt2name ]] && { # user file already exists with new name, copy it locally
                     debug "Copying $HOME/$TINTPATH/$newt2name to ${i}/user/$TINTPATH/"
                     cp "$HOME/$TINTPATH/${newt2name}" "${i}/user/$TINTPATH/" || echo "$0: Upgrading ${i}: WARNING Cannot copy $HOME/$TINTPATH/$newt2name to $i/user/$TINTPATH/" >&2
-                    VAL+=$HOME/$TINTPATH/${newt2name};
+                    VAL+=$HOME/$TINTPATH/${newt2name}';';
                     continue
                 }
                 [[ -f $t2file ]] && { # user file with current oldstyle name exists, copy it locally with new name
                     debug "Copying $t2file to ${i}/user/$TINTPATH as $newt2name"
                     cp "$t2file" "${i}/user/$TINTPATH/$newt2name" || {
                         echo "$0: Upgrading ${i}: WARNING Cannot copy $t2file to $i/user/$TINTPATH/" >&2
-                        VAL+=${t2file};
+                        VAL+=${t2file}';';
                     }
-                    VAL+=$HOME/$TINTPATH/${newt2name};
+                    VAL+=$HOME/$TINTPATH/${newt2name}';';
                     continue
                 }
                 echo "$0: Upgrading ${i}: WARNING Cannot find tint2 config file $t2file referred to in $i/user/$TINTSESSION" >&2
-                VAL+=${t2file};
+                VAL+=${t2file}';';
             fi
         done
     }
@@ -530,10 +530,10 @@ function upgradeBlobs(){
             case "$TAG" in
                 "[TINT2]"       )   [[ -f "$i/user/$TINTSESSION" ]] || {
                                         mkdir -p "$i/user/${TINTSESSION%/*}"
-                                        printf '%s\n' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION"
+                                        printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION"
                                     }
                                     check_tintsess # VAL is rewritten
-                                    printf '%s\n' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION" # rewrite session file with new filenames
+                                    printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION" # rewrite session file with new filenames
                                     printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
                                     ;;
                 "[CONKY]"       )   [[ -f "$i/user/$CONKYSESSION" ]] || {
