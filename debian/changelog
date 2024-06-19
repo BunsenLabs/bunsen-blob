@@ -1,3 +1,10 @@
+bunsen-blob (13.0-1) carbon; urgency=medium
+
+  * Migrate for Debian Trixie:
+    - debian/control: Bump Standards-Version to 4.6.2 - no changes required.
+
+ -- John Crawley <john@bunsenlabs.org>  Wed, 19 Jun 2024 16:37:51 +0900
+
 bunsen-blob (12.5.3-1) boron; urgency=medium
 
   * [samwhelp] Bugfix: correctly escape semicolons in bl-obthemes.
