@@ -1,3 +1,9 @@
+bunsen-blob (13.0-2) carbon; urgency=medium
+
+  * Recommends: allow xfce4-panel as alternative to tint2
+
+ -- John Crawley <john@bunsenlabs.org>  Tue, 16 Sep 2025 16:35:51 +0900
+
 bunsen-blob (13.0-1) carbon; urgency=medium
 
   * Migrate for Debian Trixie:
