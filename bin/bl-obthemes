@@ -19,10 +19,10 @@
 #
 #
 # Save options are for  Conky(s)
-#                       Tint2(s)
+#                       xfce4-panel
 #                       Openbox theme
 #                       GTK theme
-#                       Background (uses Nitrogen or feh, depending which
+#                       Background (uses feh or Nitrogen, depending which
 #                                   has the newer saved bg config file)
 #                       Alt Menu (dmenu)
 #                       Lightdm login gtk greeter
@@ -32,7 +32,7 @@
 # Paths are assumed to be BunsenLabs defaults
 #
 # A Screenshot is saved (Windows are hidden briefly so the image
-#                        is the bare desktop, with any Tint2s
+#                        is the bare desktop, with any xfce4-panel instances
 #                        or Conkys which are running, and a representive
 #                        menu and window open)
 #
@@ -71,14 +71,14 @@ No other CLI options are supported.
 Save options:
             Conky(s)
 
-            Tint2(s)
+            xfce4-panel
 
             Openbox theme
 
             GTK theme
 
             Background
-            (uses Nitrogen or feh, depending which has the newer saved bg config file)
+            (uses feh or Nitrogen, depending which has the newer saved bg config file)
 
             Alt Menu (dmenu)
 
@@ -96,7 +96,7 @@ Paths are assumed to be BunsenLabs defaults.
 
 A Screenshot is saved
                     (Windows are hidden briefly so the image
-                    is the bare desktop, with any Tint2s
+                    is the bare desktop, with any xfce4-panel instances
                     or Conkys which are running, and a representive
                     menu and window open.)
 
@@ -198,12 +198,13 @@ LDM="lightdm-gtk-greeter.conf"
 OBSESSION=''
 
 # used by forkncheck()
-FORKWAIT='0.3' # time to wait before checking if a forked process is still running
+#FORKWAIT='0.3' # time to wait before checking if a forked process is still running
 # use any value which is  accepted by 'sleep'
 
 # used when translating paths in system preset themes
 HOME_MARKER='%USERHOME%'
 
+# TODO: UPDATE THIS
 # packages needed for particular GTK themes
 declare -A theme_pkgs=(
 [Beam]=bunsen-themes
@@ -232,6 +233,7 @@ declare -A theme_pkgs=(
 [Yeti-Lith]=bunsen-themes-extra
 )
 
+# TODO: UPDATE THIS
 # packages needed for particular icon themes
 declare -A icon_pkgs=(
 [Faenza-Dark-Bunsen]='bunsen-faenza-icon-theme'
@@ -249,6 +251,7 @@ declare -A icon_pkgs=(
 [Adwaita]='adwaita-icon-theme'
 )
 
+# TODO: UPDATE THIS
 # packages needed for particular BL wallpapers
 declare -A wallpaper_pkgs=(
 [Boron-Emerald-logo-1280x1024.png]='bunsen-images-base'
@@ -377,6 +380,7 @@ yad_fatal_error() {
 # Trap will pass the line number where the error ocurred as $1,
 # and the command run on that line as $2.
 # This should not be needed once error handling is all done separately.
+# shellcheck disable=SC2317
 trap_error(){
     local msg="An error ocurred on line ${1}, running function '${2}', command '${3}'.\nPlease consider reporting this to the developers."
     echo -e "$0: $msg" >&2
@@ -441,156 +445,156 @@ firstChecks() {
 # Do not use with processes like conky, which can fork themselves to a new pid.
 # Global $FORKWAIT is time to wait before checking if process is still running.
 # Arguments are the command to run.
-forkncheck() {
-    local pid
-    set -m
-    "$@" >/dev/null 2>&1 & pid=$!
-    disown
-    set +m
-    sleep "$FORKWAIT" || return 1 # check for bad syntax in $FORKWAIT
-    kill -0 "$pid" >/dev/null 2>&1 && return 0
-    return 1 # process is not running
-}
+#forkncheck() {
+#    local pid
+#    set -m
+#    "$@" >/dev/null 2>&1 & pid=$!
+#    disown
+#    set +m
+#    sleep "$FORKWAIT" || return 1 # check for bad syntax in $FORKWAIT
+#    kill -0 "$pid" >/dev/null 2>&1 && return 0
+#    return 1 # process is not running
+#}
 
-# needed if a BLOB directory was last generated on BL lithium before Oct 2019
-# Drop this in BL Carbon?
-function upgradeBlobs(){
-    moveFile(){ # $1 is file, $2 is target dir
-        [[ -f "$2/${1##*/}" ]] && return 0
-        [[ -f "$1" ]] || {
-            echo "$0: Upgrading ${i}: WARNING Cannot move file ${1}, it does not exist" >&2
-            return 1
-        }
-        mkdir -p "$2"
-        mv "$1" "$2" || exit
-    }
-    moveDir(){
-        [[ -d "$2/${1##*/}" ]] && return 0
-        [[ -d "$1" ]] || {
-            echo "$0: Upgrading ${i}: WARNING Cannot move directory ${1}, it does not exist" >&2
-            return 1
-        }
-        mkdir -p "$2"
-        mv "$1" "$2" || exit
-    }
-    # checks tint sessionfile, updates filenames to new format
-    # tint2 config files will have been renamed from tint2rc-something to something.tint2rc
-    # variable VAL is rewritten
-    check_tintsess() {
-        debug "Checking ${i}/user/$TINTPATH for tint2 file names..."
-        local t2file t2name newt2name
-        local -a tintsession
-        VAL=''
-        mapfile -t tintsession < "$i/user/$TINTSESSION"
-        for t2file in "${tintsession[@]}"
-        do
-            [[ -n $t2file ]] || continue
-            t2name=${t2file##*/}
-            [[ $t2name = *'.tint2rc' || $t2name = tint2rc ]] && {
-                VAL+=${t2file}';'
-                continue # already using new name style
-            }
-            newt2name=${t2name#tint2rc-}.tint2rc
-            if [[ -f $i/user/$TINTPATH/$t2name ]] # have local copy, rename
-            then
-                debug "Renaming $t2name to $newt2name in ${i}/user/$TINTPATH"
-                mv "${i}/user/$TINTPATH/$t2name" "${i}/user/$TINTPATH/$newt2name" || {
-                    echo "$0: Upgrading ${i}: WARNING Cannot rename $i/user/$TINTPATH/$t2name" >&2
-                    VAL+=${t2file}';'
-                }
-                VAL+=$HOME/$TINTPATH/${newt2name}';'
-            else
-                [[ -f $HOME/$TINTPATH/$newt2name ]] && { # user file already exists with new name, copy it locally
-                    debug "Copying $HOME/$TINTPATH/$newt2name to ${i}/user/$TINTPATH/"
-                    cp "$HOME/$TINTPATH/${newt2name}" "${i}/user/$TINTPATH/" || echo "$0: Upgrading ${i}: WARNING Cannot copy $HOME/$TINTPATH/$newt2name to $i/user/$TINTPATH/" >&2
-                    VAL+=$HOME/$TINTPATH/${newt2name}';'
-                    continue
-                }
-                [[ -f $t2file ]] && { # user file with current oldstyle name exists, copy it locally with new name
-                    debug "Copying $t2file to ${i}/user/$TINTPATH as $newt2name"
-                    cp "$t2file" "${i}/user/$TINTPATH/$newt2name" || {
-                        echo "$0: Upgrading ${i}: WARNING Cannot copy $t2file to $i/user/$TINTPATH/" >&2
-                        VAL+=${t2file}';'
-                    }
-                    VAL+=$HOME/$TINTPATH/${newt2name}';'
-                    continue
-                }
-                echo "$0: Upgrading ${i}: WARNING Cannot find tint2 config file $t2file referred to in $i/user/$TINTSESSION" >&2
-                VAL+=${t2file}';'
-            fi
-        done
-    }
-    for i in "$USRCONFIGPATH"/*; do
-        [[ -d $i ]] || continue
-        mkdir -p "$i/user"
-        local themename=${i##*/}
-        moveFile "$USRCONFIGPATH/${themename}.jpg" "$i"
-        :> "$i/newsettings"
-        while read -r TAG VAL; do
-            case "$TAG" in
-                "[TINT2]"       )   [[ -f "$i/user/$TINTSESSION" ]] || {
-                                        mkdir -p "$i/user/${TINTSESSION%/*}"
-                                        printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION"
-                                    }
-                                    check_tintsess # VAL is rewritten
-                                    printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION" # rewrite session file with new filenames
-                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[CONKY]"       )   [[ -f "$i/user/$CONKYSESSION" ]] || {
-                                        mkdir -p "$i/user/${CONKYSESSION%/*}"
-                                        printf '%s\n' "${VAL//;/$'\n'}" > "$i/user/$CONKYSESSION"
-                                    }
-                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[ICONS]"       )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[GTK]"         )   moveFile "$i/.gtkrc-2.0" "$i/user"
-                                    moveFile "$i/.gtkrc-2.0.mine" "$i/user"
-                                    moveFile "$i/xfce4-notifyd.xml" "$i/user/.config/xfce4/xfconf/xfce-perchannel-xml"
-                                    moveDir "$i/gtk-3.0" "$i/user/.config"
-                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[OBTHEME]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[BACKGROUND]"  )   if [[ $VAL = FEH ]];then
-                                        moveFile "$i/.fehbg" "$i/user"
-                                    elif [[ $VAL = NITROGEN ]];then
-                                        moveFile "$i/bg-saved.cfg" "$i/user/.config/nitrogen"
-                                    fi
-                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[DMENU]"       )   moveFile "$i/dmenu-bind.sh" "$i/user/.config/dmenu" && {
-                                        printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    }
-                                    ;;
-                "[LIGHTDM]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                "[EXITRC]"      )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                                    # split [XFILES] into two tags
-                "[XFILES]"      )   moveFile "$i/$XFILE" "$i/user" && {
-                                        printf '%s\n' '[XFILE]' >> "$i/newsettings"
-                                    }
-                                    moveFile "$i/$BASHRC" "$i/user" && {
-                                        printf '%s\n' '[BASHRC]' >> "$i/newsettings"
-                                    }
-                                    ;;
-                "[TERMINATOR]"  )   moveFile "$i/config" "$i/user/.config/terminator" && {
-                                        printf '%s %s\n' '[Terminator]' '.config/terminator/config' >> "$i/newsettings"
-                                    }
-                                    ;;
-                '['*']'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                '('*')'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-                                    ;;
-                *               )   echo -e "Upgrading ${i}: ${TAG}:  Unknown value!" >&2
-                                    continue
-                                    ;;
-            esac
-        done < "$i/settings.cfg"
-        mv -f "$i/newsettings" "$i/settings.cfg"
-    done
-}
+## needed if a BLOB directory was last generated on BL lithium before Oct 2019
+## Drop this in BL Carbon?
+#function upgradeBlobs(){
+#    moveFile(){ # $1 is file, $2 is target dir
+#        [[ -f "$2/${1##*/}" ]] && return 0
+#        [[ -f "$1" ]] || {
+#            echo "$0: Upgrading ${i}: WARNING Cannot move file ${1}, it does not exist" >&2
+#            return 1
+#        }
+#        mkdir -p "$2"
+#        mv "$1" "$2" || exit
+#    }
+#    moveDir(){
+#        [[ -d "$2/${1##*/}" ]] && return 0
+#        [[ -d "$1" ]] || {
+#            echo "$0: Upgrading ${i}: WARNING Cannot move directory ${1}, it does not exist" >&2
+#            return 1
+#        }
+#        mkdir -p "$2"
+#        mv "$1" "$2" || exit
+#    }
+#    # checks tint sessionfile, updates filenames to new format
+#    # tint2 config files will have been renamed from tint2rc-something to something.tint2rc
+#    # variable VAL is rewritten
+#    check_tintsess() {
+#        debug "Checking ${i}/user/$TINTPATH for tint2 file names..."
+#        local t2file t2name newt2name
+#        local -a tintsession
+#        VAL=''
+#        mapfile -t tintsession < "$i/user/$TINTSESSION"
+#        for t2file in "${tintsession[@]}"
+#        do
+#            [[ -n $t2file ]] || continue
+#            t2name=${t2file##*/}
+#            [[ $t2name = *'.tint2rc' || $t2name = tint2rc ]] && {
+#                VAL+=${t2file}';'
+#                continue # already using new name style
+#            }
+#            newt2name=${t2name#tint2rc-}.tint2rc
+#            if [[ -f $i/user/$TINTPATH/$t2name ]] # have local copy, rename
+#            then
+#                debug "Renaming $t2name to $newt2name in ${i}/user/$TINTPATH"
+#                mv "${i}/user/$TINTPATH/$t2name" "${i}/user/$TINTPATH/$newt2name" || {
+#                    echo "$0: Upgrading ${i}: WARNING Cannot rename $i/user/$TINTPATH/$t2name" >&2
+#                    VAL+=${t2file}';'
+#                }
+#                VAL+=$HOME/$TINTPATH/${newt2name}';'
+#            else
+#                [[ -f $HOME/$TINTPATH/$newt2name ]] && { # user file already exists with new name, copy it locally
+#                    debug "Copying $HOME/$TINTPATH/$newt2name to ${i}/user/$TINTPATH/"
+#                    cp "$HOME/$TINTPATH/${newt2name}" "${i}/user/$TINTPATH/" || echo "$0: Upgrading ${i}: WARNING Cannot copy $HOME/$TINTPATH/$newt2name to $i/user/$TINTPATH/" >&2
+#                    VAL+=$HOME/$TINTPATH/${newt2name}';'
+#                    continue
+#                }
+#                [[ -f $t2file ]] && { # user file with current oldstyle name exists, copy it locally with new name
+#                    debug "Copying $t2file to ${i}/user/$TINTPATH as $newt2name"
+#                    cp "$t2file" "${i}/user/$TINTPATH/$newt2name" || {
+#                        echo "$0: Upgrading ${i}: WARNING Cannot copy $t2file to $i/user/$TINTPATH/" >&2
+#                        VAL+=${t2file}';'
+#                    }
+#                    VAL+=$HOME/$TINTPATH/${newt2name}';'
+#                    continue
+#                }
+#                echo "$0: Upgrading ${i}: WARNING Cannot find tint2 config file $t2file referred to in $i/user/$TINTSESSION" >&2
+#                VAL+=${t2file}';'
+#            fi
+#        done
+#    }
+#    for i in "$USRCONFIGPATH"/*; do
+#        [[ -d $i ]] || continue
+#        mkdir -p "$i/user"
+#        local themename=${i##*/}
+#        moveFile "$USRCONFIGPATH/${themename}.jpg" "$i"
+#        :> "$i/newsettings"
+#        while read -r TAG VAL; do
+#            case "$TAG" in
+#                "[TINT2]"       )   [[ -f "$i/user/$TINTSESSION" ]] || {
+#                                        mkdir -p "$i/user/${TINTSESSION%/*}"
+#                                        printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION"
+#                                    }
+#                                    check_tintsess # VAL is rewritten
+#                                    printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION" # rewrite session file with new filenames
+#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[CONKY]"       )   [[ -f "$i/user/$CONKYSESSION" ]] || {
+#                                        mkdir -p "$i/user/${CONKYSESSION%/*}"
+#                                        printf '%s\n' "${VAL//;/$'\n'}" > "$i/user/$CONKYSESSION"
+#                                    }
+#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[ICONS]"       )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[GTK]"         )   moveFile "$i/.gtkrc-2.0" "$i/user"
+#                                    moveFile "$i/.gtkrc-2.0.mine" "$i/user"
+#                                    moveFile "$i/xfce4-notifyd.xml" "$i/user/.config/xfce4/xfconf/xfce-perchannel-xml"
+#                                    moveDir "$i/gtk-3.0" "$i/user/.config"
+#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[OBTHEME]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[BACKGROUND]"  )   if [[ $VAL = FEH ]];then
+#                                        moveFile "$i/.fehbg" "$i/user"
+#                                    elif [[ $VAL = NITROGEN ]];then
+#                                        moveFile "$i/bg-saved.cfg" "$i/user/.config/nitrogen"
+#                                    fi
+#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[DMENU]"       )   moveFile "$i/dmenu-bind.sh" "$i/user/.config/dmenu" && {
+#                                        printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    }
+#                                    ;;
+#                "[LIGHTDM]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                "[EXITRC]"      )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                                    # split [XFILES] into two tags
+#                "[XFILES]"      )   moveFile "$i/$XFILE" "$i/user" && {
+#                                        printf '%s\n' '[XFILE]' >> "$i/newsettings"
+#                                    }
+#                                    moveFile "$i/$BASHRC" "$i/user" && {
+#                                        printf '%s\n' '[BASHRC]' >> "$i/newsettings"
+#                                    }
+#                                    ;;
+#                "[TERMINATOR]"  )   moveFile "$i/config" "$i/user/.config/terminator" && {
+#                                        printf '%s %s\n' '[Terminator]' '.config/terminator/config' >> "$i/newsettings"
+#                                    }
+#                                    ;;
+#                '['*']'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                '('*')'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
+#                                    ;;
+#                *               )   echo -e "Upgrading ${i}: ${TAG}:  Unknown value!" >&2
+#                                    continue
+#                                    ;;
+#            esac
+#        done < "$i/settings.cfg"
+#        mv -f "$i/newsettings" "$i/settings.cfg"
+#    done
+#}
 
 # Kill only with exact match, and only if process belongs to executor.
 # Returns success even if process is not running.
@@ -1088,8 +1092,8 @@ function getIdCmd(){
     s=${wmc}${del}
     idCmd=()
     while [[ -n $s ]]; do
-        idCmd+=("${s%%${del}*}")
-        s=${s#*${del}}
+        idCmd+=("${s%%"${del}"*}")
+        s=${s#*"${del}"}
     done
 }
 
@@ -1157,7 +1161,7 @@ function getConky(){
 
     for (( d=0; d<num_desktops; d++ ));do  # get all conkys running on specific desktops
         while read -r id;do
-            unset arrSTICKY["$id"] # remove from sticky list
+            unset 'arrSTICKY["$id"]' # remove from sticky list
             if [[ -n "$id" ]];then
                 getIdCmd "$id" # generates array idCmd
                 getCfile # extract conky config file as variable $conkyfile
@@ -1993,7 +1997,7 @@ function checkWallpaper(){
     debug "Unable to find $imgname in the expected places, checking all installed packages..."
     found_imgpath=$(dpkg-query --search "*/${imgname}" 2>/dev/null) && {
         pkg=${found_imgpath%%: *}
-        found_imgpath=${found_imgpath#${pkg}: }
+        found_imgpath=${found_imgpath#"${pkg}": }
         debug "Package $pkg includes $imgname at $found_imgpath"
         fixed_img=$found_imgpath
         return 2
@@ -2147,6 +2151,7 @@ function restoreFeh(){
         sed -i "s/${fehimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${FEHFILE}" || { echo "$0: failed to edit $FEHFILE" >&2; return 1; }
         [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
     }
+    # shellcheck source=/dev/null
     source "$HOME/$FEHFILE"
 }
 
@@ -2455,7 +2460,7 @@ needBackup(){
             return 1
         }
     done
-    path="${file#$HOME/}"
+    path="${file#"$HOME"/}"
     for dir in "$USRCONFIGPATH"/*/user "$SYSCONFIGPATH"/*/user
     do
         [[ -f $dir/$path ]] || continue
@@ -2953,7 +2958,7 @@ function displayBlobs(){
             --button="_Apply Selected Blob:0" --button="_Delete Selected Blob:2" \
             $HLPBTN --button="gtk-quit:1" \
             --always-print-result \
-            --width=$DLGWIDTH --height=$DLGHEIGHT --center --image-preview \
+            --width="$DLGWIDTH" --height="$DLGHEIGHT" --center --image-preview \
             --expand-column=3 \
             --column="Last Set:IMG" \
             --column="Config Name":TEXT \
@@ -3013,7 +3018,7 @@ Do you want to save your current session before applying <b>${themename}</b>?"
                             3)
                                 debug "\n Showing file differences"
                                 for userfile in "${difflist[@]}"; do
-                                    differ --title "Changes in user files" "$CURRENTSESSDIR/user/${userfile#$HOME/}" "$userfile"
+                                    differ --title "Changes in user files" "$CURRENTSESSDIR/user/${userfile#"$HOME"/}" "$userfile"
                                 done
                             ;;
                         esac
