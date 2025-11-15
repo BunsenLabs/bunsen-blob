@@ -27,7 +27,8 @@ Recommends: bunsen-pipemenus,
   conky-all,
   nitrogen | feh,
   openbox,
-  xfce4-panel | tint2
+  xfce4-panel,
+  xfce4-panel-profiles
 Suggests: meld
 Breaks: bunsen-utilities (<< 12.2-1)
 Replaces: bunsen-utilities (<< 12.2-1)
@@ -43,7 +44,7 @@ Description: utility to assist management of GUI themes on BunsenLabs
   - GTK theme
   - Icon theme
   - Conky
-  - Tint2
+  - Xfce4-panel
   - Desktop background
   - Alt Menu (dmenu)
   - Lightdm login gtk greeter
