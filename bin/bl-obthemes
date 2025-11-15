@@ -1223,6 +1223,24 @@ function getConky(){
     debug "\n  Saved running Conky(s)\n"
 }
 
+
+parseTint2Settings(){
+    [[ -f $1 ]] || { echo "$1 is not a file." >&2;return 1;}
+    unset KEYS
+    declare -Ag KEYS
+    local entry_regex line key value
+    entry_regex="^[[:blank:]]*([[:alnum:]_][[:alnum:]_-]*)[[:blank:]]*=[[:blank:]]*([^[:blank:]].*)$"
+    while read -r line
+    do
+        [[ -n $line ]] || continue
+        [[ $line =~ $entry_regex ]] || continue
+        key=${BASH_REMATCH[1]}
+        value=${BASH_REMATCH[2]}
+        KEYS["${key}"]="${value}"
+    done < "$1"
+}
+
+
 # If tint2 is not to be saved in new theme, pass '--tmp <filepath>'
 # to store current tint2s in tempfile <filepath> while making scrot.
 function getTint(){
