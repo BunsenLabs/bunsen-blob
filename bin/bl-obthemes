@@ -20,6 +20,7 @@
 #
 # Save options are for  Conky(s)
 #                       xfce4-panel
+#                       Tint2
 #                       Openbox theme
 #                       GTK theme
 #                       Background (uses feh or Nitrogen, depending which
@@ -32,7 +33,7 @@
 # Paths are assumed to be BunsenLabs defaults
 #
 # A Screenshot is saved (Windows are hidden briefly so the image
-#                        is the bare desktop, with any xfce4-panel instances
+#                        is the bare desktop, with any xfce4-panel, Tint2
 #                        or Conkys which are running, and a representive
 #                        menu and window open)
 #
@@ -73,6 +74,8 @@ Save options:
 
             xfce4-panel
 
+            Tint2
+
             Openbox theme
 
             GTK theme
@@ -96,7 +99,7 @@ Paths are assumed to be BunsenLabs defaults.
 
 A Screenshot is saved
                     (Windows are hidden briefly so the image
-                    is the bare desktop, with any xfce4-panel instances
+                    is the bare desktop, with any xfce4-panel, tint2
                     or Conkys which are running, and a representive
                     menu and window open.)
 
@@ -329,6 +332,7 @@ PICKICONS="Icon theme"
 PICKBG="Background Wallpaper"
 PICKCONKY="Conky"
 PICKTINT="Tint2"
+PICKXFPANEL="xfce4-panel"
 PICKDMENU="dmenu (Alt menu)"
 PICKLDM="Lightdm Login theme"
 #PICKEXIT="Exit dialog theme" # bl-exit no longer has separate themes
@@ -726,6 +730,7 @@ function Intro(){
     Openbox theme
     GTK theme
     Conkys
+    xfce4-panel
     Tint2
     Desktop Background
     Alt Menu (dmenu)
@@ -1221,23 +1226,6 @@ function getConky(){
         echo -e "Running Conkys:\t$CONKYTXT\n" >> "$LISTMSG"
     }
     debug "\n  Saved running Conky(s)\n"
-}
-
-
-parseTint2Settings(){
-    [[ -f $1 ]] || { echo "$1 is not a file." >&2;return 1;}
-    unset KEYS
-    declare -Ag KEYS
-    local entry_regex line key value
-    entry_regex="^[[:blank:]]*([[:alnum:]_][[:alnum:]_-]*)[[:blank:]]*=[[:blank:]]*([^[:blank:]].*)$"
-    while read -r line
-    do
-        [[ -n $line ]] || continue
-        [[ $line =~ $entry_regex ]] || continue
-        key=${BASH_REMATCH[1]}
-        value=${BASH_REMATCH[2]}
-        KEYS["${key}"]="${value}"
-    done < "$1"
 }
 
 
@@ -2298,6 +2286,22 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
     debug "\n  Restored Conky\n"
 }
 
+parseTint2Settings(){
+    [[ -f $1 ]] || { echo "$1 is not a file." >&2;return 1;}
+    unset T2KEYS
+    declare -Ag T2KEYS
+    local entry_regex line key value
+    entry_regex="^[[:blank:]]*([[:alnum:]_][[:alnum:]_-]*)[[:blank:]]*=[[:blank:]]*([^[:blank:]].*)$"
+    while read -r line
+    do
+        [[ -n $line ]] || continue
+        [[ $line =~ $entry_regex ]] || continue
+        key=${BASH_REMATCH[1]}
+        value=${BASH_REMATCH[2]}
+        T2KEYS["${key}"]="${value}"
+    done < "$1"
+}
+
 function restoreTint2(){    # $1 = $VAL from restoreSettings()
     local tintcmds user_tintsession saved_tintsession
     tintcmds="${1//;/$'\n'}"
@@ -2685,7 +2689,7 @@ restoreSettings() {
 
     # check if wallpaper can be restored by currently running daemon instead of original bgsetter
     img=${values[wallpaper]} # only set by recent versions of BLOB
-    orig_bgsetter=${values["$PICKBG"]} # one of NITROGEN, FEH, XFDESKTOP, PCMANFM or possibly others, from settings.cfg
+    orig_bgsetter=${values["$PICKBG"]} # one of NITROGEN, FEH, XWWALL, XFDESKTOP, PCMANFM or possibly others, from settings.cfg
     if bgsetter="$(checkBgDaemon)"; then # not using nitrogen or feh
         if [[ -n $img ]]; then
             debug "$bgsetter will use image $img to draw wallpaper, set by $orig_bgsetter"
@@ -3147,7 +3151,7 @@ fi
 
 # convert config filepaths in any existing user saved BLOBs to new scheme
 # store conky and tint2 commands in session files
-upgradeBlobs
+#upgradeBlobs
 
 Intro --one-view-only
 
