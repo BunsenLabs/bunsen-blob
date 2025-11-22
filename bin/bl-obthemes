@@ -215,7 +215,6 @@ OBSESSION=''
 # used when translating paths in system preset themes
 HOME_MARKER='%USERHOME%'
 
-# TODO: UPDATE THIS
 # packages needed for particular GTK themes
 declare -A theme_pkgs=(
 [Beam]=bunsen-themes
@@ -230,6 +229,12 @@ declare -A theme_pkgs=(
 [Bunsen-He-flatish]=bunsen-themes
 [Dragon]=bunsen-themes
 [Yeti]=bunsen-themes
+[bunsen-yaru]=bunsen-yaru-gtk
+[bunsen-yaru-dark]=bunsen-yaru-gtk
+[bunsen-yaru-bark]=bunsen-yaru-gtk
+[bunsen-yaru-bark-dark]=bunsen-yaru-gtk
+[bunsen-yaru-sage]=bunsen-yaru-gtk
+[bunsen-yaru-sage-dark]=bunsen-yaru-gtk
 [Be-Penguin]=bunsen-themes-extra
 [Be-Penguin-light]=bunsen-themes-extra
 [Boron-blue]=bunsen-themes-extra
@@ -244,9 +249,13 @@ declare -A theme_pkgs=(
 [Yeti-Lith]=bunsen-themes-extra
 )
 
-# TODO: UPDATE THIS
 # packages needed for particular icon themes
 declare -A icon_pkgs=(
+[labbe-icons-bark]='labbe-icons-bark'
+[labbe-icons-sage]='labbe-icons-sage'
+[labbe-icons-grey]='labbe-icons-grey'
+[labbe-icons-oomox]='labbe-icons-oomox'
+[labbe-icons-telinkrin]='labbe-icons-telinkrin'
 [Faenza-Dark-Bunsen]='bunsen-faenza-icon-theme'
 [Faenza-Bunsen]='bunsen-faenza-icon-theme'
 [Paper-Bunsen]='bunsen-paper-icon-theme'
@@ -265,31 +274,22 @@ declare -A icon_pkgs=(
 # TODO: UPDATE THIS
 # packages needed for particular BL wallpapers
 declare -A wallpaper_pkgs=(
-[Boron-Emerald-logo-1280x1024.png]='bunsen-images-base'
-[Boron-Emerald-logo-1440x900.png]='bunsen-images-base'
-[Boron-Emerald-logo-1920x1080.png]='bunsen-images-base'
-[Boron-Emerald-plain-1280x1024.png]='bunsen-images-base'
-[Boron-Emerald-plain-1440x900.png]='bunsen-images-base'
-[Boron-Emerald-plain-1920x1080.png]='bunsen-images-base'
-[Ruby-flame-1280x1024.png]='bunsen-images-base'
-[Ruby-flame-1440x900.png]='bunsen-images-base'
-[Ruby-flame-1920x1080.png]='bunsen-images-base'
-[Ruby-plain-1280x1024.png]='bunsen-images-base'
-[Ruby-plain-1440x900.png]='bunsen-images-base'
-[Ruby-plain-1920x1080.png]='bunsen-images-base'
 [tile.png]='bunsen-images-base'
 [default]='bunsen-images-base'
-[Boron-dark-1280x1024.png]='bunsen-images'
-[Boron-dark-1440x900.png]='bunsen-images'
-[Boron-dark-1920x1080.png]='bunsen-images'
+[pavel-czerwinski-bark.png]='bunsen-images-base'
+[pavel-czerwinski-sage.png]='bunsen-images-base'
 [Before-Sunrise.jpg]='bunsen-images'
-[Beryllium-1280x1024.jpg]='bunsen-images'
-[Beryllium-1440x900.jpg]='bunsen-images'
-[Beryllium-1920x1080.jpg]='bunsen-images'
+[Boron-dark-1920x1080.png]='bunsen-images'
+[Boron-Emerald-logo-1920x1080.png]='bunsen-images'
+[Boron-Emerald-plain-1920x1080.png]='bunsen-images'
 [Fever_Room.jpg]='bunsen-images'
 [grey.png]='bunsen-images'
 [Networks.png]='bunsen-images'
+[Ruby-flame-1920x1080.png]='bunsen-images'
+[Ruby-plain-1920x1080.png]='bunsen-images'
+[svalbard_kols.png]='bunsen-images'
 [Yeti.jpg]='bunsen-images'
+[Beryllium-1920x1080.jpg]='bunsen-images-archives'
 [BL-beam.png]='bunsen-images-archives'
 [BL-beam-grey.png]='bunsen-images-archives'
 [BL-beam-plain.png]='bunsen-images-archives'
