@@ -490,146 +490,6 @@ firstChecks() {
 #    return 1 # process is not running
 #}
 
-## needed if a BLOB directory was last generated on BL lithium before Oct 2019
-## Drop this in BL Carbon?
-#function upgradeBlobs(){
-#    moveFile(){ # $1 is file, $2 is target dir
-#        [[ -f "$2/${1##*/}" ]] && return 0
-#        [[ -f "$1" ]] || {
-#            echo "$0: Upgrading ${i}: WARNING Cannot move file ${1}, it does not exist" >&2
-#            return 1
-#        }
-#        mkdir -p "$2"
-#        mv "$1" "$2" || exit
-#    }
-#    moveDir(){
-#        [[ -d "$2/${1##*/}" ]] && return 0
-#        [[ -d "$1" ]] || {
-#            echo "$0: Upgrading ${i}: WARNING Cannot move directory ${1}, it does not exist" >&2
-#            return 1
-#        }
-#        mkdir -p "$2"
-#        mv "$1" "$2" || exit
-#    }
-#    # checks tint sessionfile, updates filenames to new format
-#    # tint2 config files will have been renamed from tint2rc-something to something.tint2rc
-#    # variable VAL is rewritten
-#    check_tintsess() {
-#        debug "Checking ${i}/user/$TINTPATH for tint2 file names..."
-#        local t2file t2name newt2name
-#        local -a tintsession
-#        VAL=''
-#        mapfile -t tintsession < "$i/user/$TINTSESSION"
-#        for t2file in "${tintsession[@]}"
-#        do
-#            [[ -n $t2file ]] || continue
-#            t2name=${t2file##*/}
-#            [[ $t2name = *'.tint2rc' || $t2name = tint2rc ]] && {
-#                VAL+=${t2file}';'
-#                continue # already using new name style
-#            }
-#            newt2name=${t2name#tint2rc-}.tint2rc
-#            if [[ -f $i/user/$TINTPATH/$t2name ]] # have local copy, rename
-#            then
-#                debug "Renaming $t2name to $newt2name in ${i}/user/$TINTPATH"
-#                mv "${i}/user/$TINTPATH/$t2name" "${i}/user/$TINTPATH/$newt2name" || {
-#                    echo "$0: Upgrading ${i}: WARNING Cannot rename $i/user/$TINTPATH/$t2name" >&2
-#                    VAL+=${t2file}';'
-#                }
-#                VAL+=$HOME/$TINTPATH/${newt2name}';'
-#            else
-#                [[ -f $HOME/$TINTPATH/$newt2name ]] && { # user file already exists with new name, copy it locally
-#                    debug "Copying $HOME/$TINTPATH/$newt2name to ${i}/user/$TINTPATH/"
-#                    cp "$HOME/$TINTPATH/${newt2name}" "${i}/user/$TINTPATH/" || echo "$0: Upgrading ${i}: WARNING Cannot copy $HOME/$TINTPATH/$newt2name to $i/user/$TINTPATH/" >&2
-#                    VAL+=$HOME/$TINTPATH/${newt2name}';'
-#                    continue
-#                }
-#                [[ -f $t2file ]] && { # user file with current oldstyle name exists, copy it locally with new name
-#                    debug "Copying $t2file to ${i}/user/$TINTPATH as $newt2name"
-#                    cp "$t2file" "${i}/user/$TINTPATH/$newt2name" || {
-#                        echo "$0: Upgrading ${i}: WARNING Cannot copy $t2file to $i/user/$TINTPATH/" >&2
-#                        VAL+=${t2file}';'
-#                    }
-#                    VAL+=$HOME/$TINTPATH/${newt2name}';'
-#                    continue
-#                }
-#                echo "$0: Upgrading ${i}: WARNING Cannot find tint2 config file $t2file referred to in $i/user/$TINTSESSION" >&2
-#                VAL+=${t2file}';'
-#            fi
-#        done
-#    }
-#    for i in "$USRCONFIGPATH"/*; do
-#        [[ -d $i ]] || continue
-#        mkdir -p "$i/user"
-#        local themename=${i##*/}
-#        moveFile "$USRCONFIGPATH/${themename}.jpg" "$i"
-#        :> "$i/newsettings"
-#        while read -r TAG VAL; do
-#            case "$TAG" in
-#                "[TINT2]"       )   [[ -f "$i/user/$TINTSESSION" ]] || {
-#                                        mkdir -p "$i/user/${TINTSESSION%/*}"
-#                                        printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION"
-#                                    }
-#                                    check_tintsess # VAL is rewritten
-#                                    printf '%s' "${VAL//;/$'\n'}" > "$i/user/$TINTSESSION" # rewrite session file with new filenames
-#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[CONKY]"       )   [[ -f "$i/user/$CONKYSESSION" ]] || {
-#                                        mkdir -p "$i/user/${CONKYSESSION%/*}"
-#                                        printf '%s\n' "${VAL//;/$'\n'}" > "$i/user/$CONKYSESSION"
-#                                    }
-#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[ICONS]"       )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[GTK]"         )   moveFile "$i/.gtkrc-2.0" "$i/user"
-#                                    moveFile "$i/.gtkrc-2.0.mine" "$i/user"
-#                                    moveFile "$i/xfce4-notifyd.xml" "$i/user/.config/xfce4/xfconf/xfce-perchannel-xml"
-#                                    moveDir "$i/gtk-3.0" "$i/user/.config"
-#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[OBTHEME]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[BACKGROUND]"  )   if [[ $VAL = FEH ]];then
-#                                        moveFile "$i/.fehbg" "$i/user"
-#                                    elif [[ $VAL = NITROGEN ]];then
-#                                        moveFile "$i/bg-saved.cfg" "$i/user/.config/nitrogen"
-#                                    fi
-#                                    printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[DMENU]"       )   moveFile "$i/dmenu-bind.sh" "$i/user/.config/dmenu" && {
-#                                        printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    }
-#                                    ;;
-#                "[LIGHTDM]"     )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                "[EXITRC]"      )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                                    # split [XFILES] into two tags
-#                "[XFILES]"      )   moveFile "$i/$XFILE" "$i/user" && {
-#                                        printf '%s\n' '[XFILE]' >> "$i/newsettings"
-#                                    }
-#                                    moveFile "$i/$BASHRC" "$i/user" && {
-#                                        printf '%s\n' '[BASHRC]' >> "$i/newsettings"
-#                                    }
-#                                    ;;
-#                "[TERMINATOR]"  )   moveFile "$i/config" "$i/user/.config/terminator" && {
-#                                        printf '%s %s\n' '[Terminator]' '.config/terminator/config' >> "$i/newsettings"
-#                                    }
-#                                    ;;
-#                '['*']'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                '('*')'         )   printf '%s %s\n' "$TAG" "$VAL" >> "$i/newsettings"
-#                                    ;;
-#                *               )   echo -e "Upgrading ${i}: ${TAG}:  Unknown value!" >&2
-#                                    continue
-#                                    ;;
-#            esac
-#        done < "$i/settings.cfg"
-#        mv -f "$i/newsettings" "$i/settings.cfg"
-#    done
-#}
-
 # Kill only with exact match, and only if process belongs to executor.
 # Returns success even if process is not running.
 # Usage: safeKill <processname>
@@ -812,10 +672,10 @@ function Intro(){
 # a user-inputted name ie no leading or trailing space, dot, underbar or hyphen.
 # Otherwise accept those four along with [:alnum:] (which can include unicode).
 checkName() {
-    local re='^[[:alnum:]]([[:alnum:] ._-]+[[:alnum:]])?$'
+    local re='^[[:alnum:]]([[:alnum:] ._-]*[[:alnum:]])?$'
     [[ $1 =~ $re ]] && return 0
     return 1
-}    
+}
 
 # sets globals CONFIGDIR CONFIGDIR_BKP SETTINGS LISTMSG NEWNAME for storing new theme
 function setName(){  # set name of collection, make dir and session settings file
@@ -1287,7 +1147,7 @@ getXfce4Panel(){
         yad_warning "Please install xfce4-panel-profiles to save xfce4-panel settings."
         return 1
     }
-    
+
     xfpdir="$CONFIGDIR/user/$XFPANELPROFDIR/"
     mkdir -p "$xfpdir"
     xfce4-panel-profiles save "$xfpdir/${NEWNAME}.tar.bz2" || {
@@ -1295,7 +1155,7 @@ getXfce4Panel(){
         yad_error "Failed to save xfce4-panel settings"
         return 1
     }
-    
+
     #mkdir -p "$HOME/$XFPANELPROFDIR" # extra copy independent of blob - enable this?
     #cp "$xfpdir/${NEWNAME}.tar.bz2" "$HOME/$XFPANELPROFDIR"
     echo "[XFPANEL]" >> "$SETTINGS"
@@ -2367,7 +2227,7 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
 restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (currently empty)
     local xfpdir xfpfile missing_commands=() i=''
     debug "restoring xfce4-panel settings"
-    
+
     for i in xfce4-panel xfce4-panel-profiles
     do
         hash "$i" 2>/dev/null || missing_commands+=(" $i")
@@ -2401,7 +2261,7 @@ to use xfce4-panel settings."
     xfce4-panel-profiles load "$HOME/$XFPANELPROFDIR/$xfpfile" || {
         echo "$0: failed to load xfce4-panel profile $HOME/$XFPANELPROFDIR/$xfpfile" >&2
         return 1
-    }  
+    }
 
 }
 
