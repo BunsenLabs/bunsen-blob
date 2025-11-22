@@ -150,6 +150,10 @@ do
     esac
 done
 
+### required commands ###
+declare -a APPS
+APPS=( "yad" "xdotool" "dconf" "xfconf-query" "xmlstarlet" "xrandr" "lxappearance" "jgmenu_run" "scrot" )
+
 ######################### VARIABLES ####################################
 # ( with some exceptions, GLOBAL variable names are uppercase, local in functions are lowercase )
 
@@ -189,6 +193,8 @@ TINTPATH=".config/tint2"
 # Saved files will be restored.
 CONKYSESSION="$CONKYPATH/conky-sessionfile"
 TINTSESSION="$TINTPATH/tint2-sessionfile"
+
+XFPANELPROFDIR=".local/share/xfce4-panel-profiles"
 
 ### SYSTEM CONFIG VARIABLES TO BE SAVED AND RESTORED
 LDMDIR="/etc/lightdm"
@@ -382,7 +388,7 @@ yad_fatal_error() {
 ### END DIALOG FUNCTIONS
 
 # Trap will pass the line number where the error ocurred as $1,
-# and the command run on that line as $2.
+# the function name as $2 and the command run on that line as $3.
 # This should not be needed once error handling is all done separately.
 # shellcheck disable=SC2317
 trap_error(){
@@ -404,6 +410,28 @@ createFlag() {
     touch "$HOME/.config/bunsen/$1"
 }
 
+# Check for availability of commands used in script.
+declareDependencies(){     # adapted from bl-includes
+    # Usage: declareDependencies command [command...]
+    local missing_commands=() i='' errmsg
+    for i in "$@"
+    do
+        hash "$i" 2>/dev/null || missing_commands+=(" $i")
+    done
+    [[ ${missing_commands[0]} ]] && {
+        errmsg="
+    This script requires the following commands:
+
+        ${missing_commands[*]}
+
+    Please install the packages containing the missing commands
+    and re-run the script.
+"
+        yad_fatal_error "$errmsg"
+        exit 1
+    }
+}
+
 # This is run at the start.
 # OBSESSION global used in getScrot()
 firstChecks() {
@@ -412,6 +440,8 @@ firstChecks() {
         echo $"$0: Error: This script should not be run by root." >&2
         exit 1
     fi
+
+    declareDependencies "${APPS[@]}"    # see if system has the required commands installed
 
     # Test if openbox is running, and with what session file.
     obline=$(pgrep -ax -u "$USER" openbox) || {
@@ -778,12 +808,22 @@ function Intro(){
 
 ####################### save functions #################################
 
+# Check if a string only contains reasonable characters for
+# a user-inputted name ie no leading or trailing space, dot, underbar or hyphen.
+# Otherwise accept those four along with [:alnum:] (which can include unicode).
+checkName() {
+    local re='^[[:alnum:]]([[:alnum:] ._-]+[[:alnum:]])?$'
+    [[ $1 =~ $re ]] && return 0
+    return 1
+}    
+
 # sets globals CONFIGDIR CONFIGDIR_BKP SETTINGS LISTMSG NEWNAME for storing new theme
 function setName(){  # set name of collection, make dir and session settings file
-    local msg msg2
+    local msg msg2 RET
     msg="  Configurations will be saved to a new directory in  \
     \n  $USRCONFIGPATH\n\n  Enter name of new collection...  "
     msg2="  No file specified for new saved session.\n\n  Try again?"
+    msg3='  Entered name contained unusual characters.\n\n  Try again?'
     local del time txt
     del=0
     while true;do  # loop dialog if nothing is selected
@@ -792,9 +832,14 @@ function setName(){  # set name of collection, make dir and session settings fil
             return 1
         elif [[ ! $NEWNAME ]] ;then     # entry was empty
             debug "\n  No name entered for new collection!"
-            yad_question "$msg2"
-            RET=$?
-            if (( RET == 0 ));then
+            if yad_question "$msg2";then
+                continue
+            else
+                return 1
+            fi
+        elif ! checkName "$NEWNAME"; then # entry contained unusual characters
+            debug "\n  $NEWNAME contains unallowed character(s)"
+            if yad_question "$msg3";then
                 continue
             else
                 return 1
@@ -807,7 +852,7 @@ function setName(){  # set name of collection, make dir and session settings fil
                 debug "\n  $CONFIGDIR already exists"
                 if yad_question "Overwrite existing saved session?"
                 then
-                    mv "$CONFIGDIR" "$CONFIGDIR_BKP" # && mkdir -p "$CONFIGDIR"
+                    mv "$CONFIGDIR" "$CONFIGDIR_BKP"
                     del=1
                 else
                     continue
@@ -1131,7 +1176,7 @@ userFilepath(){
 
 # If conky is not to be saved in new theme, pass '--tmp <filepath>'
 # to store current conkys in tempfile <filepath> while making scrot.
-function getConky(){
+getConky(){
     local conkyfile conkyline saved_conkysession num_desktops CONKYCMDS CONKYTXT
     local -a idCmd
     local -A arrSTICKY
@@ -1228,10 +1273,39 @@ function getConky(){
     debug "\n  Saved running Conky(s)\n"
 }
 
+getXfce4Panel(){
+    local xfpdir
+
+    pgrep -x xfce4-panel -u "$USER" >/dev/null || {
+        debug "No xfce4-panel instances are running"
+            echo "[XFPANEL] none" >> "$SETTINGS"
+            echo -e "No xfce4-panel.\n(Any running instances will be stopped.)\n" >> "$LISTMSG"
+        return 0
+    }
+
+    hash xfce4-panel-profiles || {
+        yad_warning "Please install xfce4-panel-profiles to save xfce4-panel settings."
+        return 1
+    }
+    
+    xfpdir="$CONFIGDIR/user/$XFPANELPROFDIR/"
+    mkdir -p "$xfpdir"
+    xfce4-panel-profiles save "$xfpdir/${NEWNAME}.tar.bz2" || {
+        debug "Failed to save xfce4-panel settings to $xfpdir/${NEWNAME}.tar.bz2"
+        yad_error "Failed to save xfce4-panel settings"
+        return 1
+    }
+    
+    #mkdir -p "$HOME/$XFPANELPROFDIR" # extra copy independent of blob - enable this?
+    #cp "$xfpdir/${NEWNAME}.tar.bz2" "$HOME/$XFPANELPROFDIR"
+    echo "[XFPANEL]" >> "$SETTINGS"
+    echo -e "xfce4-panel configuration saved:\n\t~/$XFPANELPROFDIR/${NEWNAME}.tar.bz2\n" >> "$LISTMSG"
+    debug "\n  Saved running xfce4-panel(s) to $xfpdir/${NEWNAME}.tar.bz2\n"
+}
 
 # If tint2 is not to be saved in new theme, pass '--tmp <filepath>'
 # to store current tint2s in tempfile <filepath> while making scrot.
-function getTint(){
+getTint(){
     local tpath saved_tintsession TINTCMDS TINT2TXT
     local save=1
     if [[ $1 = '--tmp' ]]
@@ -1329,6 +1403,7 @@ function getOBtheme(){
 
 </xsl:stylesheet>
 '
+# TODO try <(printf '%s' "$xsl") instead of cat+herestring
     xmlstarlet transform <(cat <<<"$xsl") "$RCFILE" > "$obfile" || return 1
     [[ -s $obfile ]] || {
         echo "$0: Failed to generate Openbox theme settings in $obfile" >&2
@@ -1640,6 +1715,7 @@ function saveSettings(){
         "$PICKGTK"
         "$PICKBG"
         "$PICKCONKY"
+        "$PICKXFPANEL"
         "$PICKTINT"
         "$PICKDMENU"
         "$PICKLDM"
@@ -1662,6 +1738,8 @@ function saveSettings(){
             "$PICKBG"   )   getBg
                             ;;
             "$PICKCONKY")   getConky
+                            ;;
+            "$PICKXFPANEL") getXfce4Panel
                             ;;
             "$PICKTINT" )   getTint
                             ;;
@@ -2286,21 +2364,63 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
     debug "\n  Restored Conky\n"
 }
 
-parseTint2Settings(){
-    [[ -f $1 ]] || { echo "$1 is not a file." >&2;return 1;}
-    unset T2KEYS
-    declare -Ag T2KEYS
-    local entry_regex line key value
-    entry_regex="^[[:blank:]]*([[:alnum:]_][[:alnum:]_-]*)[[:blank:]]*=[[:blank:]]*([^[:blank:]].*)$"
-    while read -r line
+restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (currently empty)
+    local xfpdir xfpfile missing_commands=() i=''
+    debug "restoring xfce4-panel settings"
+    
+    for i in xfce4-panel xfce4-panel-profiles
     do
-        [[ -n $line ]] || continue
-        [[ $line =~ $entry_regex ]] || continue
-        key=${BASH_REMATCH[1]}
-        value=${BASH_REMATCH[2]}
-        T2KEYS["${key}"]="${value}"
-    done < "$1"
+        hash "$i" 2>/dev/null || missing_commands+=(" $i")
+    done
+    [[ ${missing_commands[0]} ]] && {
+        debug "xfce4-panel or xfce4-panel-profiles are missing, not restoring"
+        yad_warning "Please install:
+    ${missing_commands[*]}
+to use xfce4-panel settings."
+        return 1
+    }
+
+    xfpdir="$THEMEPATH/user/$XFPANELPROFDIR"
+    xfpfile="${themename}.tar.bz2"
+    debug "using xfce4-profile $xfpdir/$xfpfile"
+    [[ -f $xfpdir/$xfpfile ]] || {
+        echo "$0: Cannot find xfce4-panel profile $xfpdir/$xfpfile" >&2
+        return 1
+    }
+    cp "$xfpdir/$xfpfile" "$HOME/$XFPANELPROFDIR" || {
+        echo "$0: failed to copy $xfpdir/$xfpfile to $HOME/$XFPANELPROFDIR" >&2
+        return 1
+    }
+
+    pgrep xfce4-panel || {
+        debug "xfce4-panel not running, starting it now"
+        xfce4-panel
+    }
+
+    debug "loading new xfce4-panel profile"
+    xfce4-panel-profiles load "$HOME/$XFPANELPROFDIR/$xfpfile" || {
+        echo "$0: failed to load xfce4-panel profile $HOME/$XFPANELPROFDIR/$xfpfile" >&2
+        return 1
+    }  
+
 }
+
+# generates global array T2KEYS
+#parseTint2Settings(){
+#    [[ -f $1 ]] || { echo "$1 is not a file." >&2;return 1;}
+#    unset T2KEYS
+#    declare -Ag T2KEYS
+#    local entry_regex line key value
+#    entry_regex="^[[:blank:]]*([[:alnum:]_][[:alnum:]_-]*)[[:blank:]]*=[[:blank:]]*([^[:blank:]].*)$"
+#    while read -r line
+#    do
+#        [[ -n $line ]] || continue
+#        [[ $line =~ $entry_regex ]] || continue
+#        key=${BASH_REMATCH[1]}
+#        value=${BASH_REMATCH[2]}
+#        T2KEYS["${key}"]="${value}"
+#    done < "$1"
+#}
 
 function restoreTint2(){    # $1 = $VAL from restoreSettings()
     local tintcmds user_tintsession saved_tintsession
@@ -2584,7 +2704,7 @@ function getActiveMonitorDimensions(){
 # Check for a running background-setting daemon.
 # (There should not be more than one!)
 function checkBgDaemon(){
-    local daemon_bgsetters
+    local daemon_bgsetters re
     daemon_bgsetters=('XFDESKTOP' 'PCMANFM') # If any of these are running they can set a wallpaper just by its filepath.
     for i in "${daemon_bgsetters[@]}"
     do
@@ -2647,6 +2767,9 @@ restoreSettings() {
                                 ;;
             "[CONKY]"       )   labels+=("$PICKCONKY")
                                 values["$PICKCONKY"]="$VAL"
+                                ;;
+            "[XFPANEL]"     )   labels+=("$PICKXFPANEL")
+                                values["$PICKXFPANEL"]="$VAL"
                                 ;;
             "[TINT2]"       )   labels+=("$PICKTINT")
                                 values["$PICKTINT"]="$VAL"
@@ -2782,6 +2905,8 @@ restoreSettings() {
             "$PICKBG"       )   restoreBg "$VAL"
                                 ;;
             "$PICKCONKY"    )   restoreConky "$VAL"
+                                ;;
+            "$PICKXFPANEL"  )   restoreXfce4Panel "$VAL"
                                 ;;
             "$PICKTINT"     )   restoreTint2 "$VAL"
                                 ;;
@@ -2976,7 +3101,7 @@ function displayBlobs(){
         CONFIG=$(yad "${yad_args[@]}" --list --title="$TITLE" \
             --text="Double-click the highlighted selection, or use \"Enter\" key, or the \"Apply Selected Blob\" button to apply selected themeset to your desktop.\n" \
             --separator=" " \
-            --button="_Save Current Blob:3" --button="_View Selected Blob:4" \
+            --button="_Save Current Themes:3" --button="_View Selected Blob:4" \
             --button="_Apply Selected Blob:0" --button="_Delete Selected Blob:2" \
             $HLPBTN --button="gtk-quit:1" \
             --always-print-result \

@@ -16,8 +16,13 @@ Depends: ${misc:Depends},
   bunsen-common,
   bunsen-utilities,
   dconf-cli,
+  jgmenu,
+  lxappearance,
   scrot,
+  x11-xserver-utils,
+  x11-utils,
   xdotool (>=1:2.20110530.1-3),
+  xfconf,
   xmlstarlet,
   xsettingsd,
   yad
@@ -44,7 +49,7 @@ Description: utility to assist management of GUI themes on BunsenLabs
   - GTK theme
   - Icon theme
   - Conky
-  - Xfce4-panel
+  - Xfce4-panel 
   - Desktop background
   - Alt Menu (dmenu)
   - Lightdm login gtk greeter
