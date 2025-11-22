@@ -169,9 +169,11 @@ SYSCONFIGPATH="/usr/share/bunsen/blob/blob"
 CURSESSFILE="$USRCONFIGPATH/current"
 
 ### USER CONFIG VARIABLES TO BE SAVED AND RESTORED
-OBPATH="$HOME/.config/openbox"
-RCFILE="$OBPATH/bl-rc.xml" # NB now using the new BunsenLabs file name
-OLDRCFILE="$OBPATH/rc.xml"
+OBPATH="$HOME/.config/bunsen/openbox" # used from BL Carbon
+STDOBPATH="$HOME/.config/openbox" # used by vanilla (not BL) openbox sessions
+RCFILE="$OBPATH/rc-xml" # used from BL Carbon
+OLDRCFILE="$STDOBPATH/bl-rc.xml" # up to Boron, used the BunsenLabs file name
+STDRCFILE="$STDOBPATH/rc.xml" # if it exists, used by vanilla (not BL) openbox sessions (and ignored by this script)
 GTK2=".gtkrc-2.0"
 GTK2MINE=".gtkrc-2.0.mine"
 GTK3=".config/gtk-3.0"
@@ -1868,6 +1870,7 @@ urlencode() {
 function restoreOBrc(){
     local themefile rcbkp xsl
     themefile="$THEMEPATH/obtheme.txt"
+    debug "restoring OB theme from $themefile"
     [[ -r $RCFILE ]] || {
         debug "Restoring theme from $themefile to $OLDRCFILE instead of $RCFILE"
         RCFILE="$OLDRCFILE"
@@ -3133,10 +3136,6 @@ mkdir -p "$USRCONFIGPATH"
 if [[ ! -f $CURSESSFILE ]];then
     touch "$CURSESSFILE"
 fi
-
-# convert config filepaths in any existing user saved BLOBs to new scheme
-# store conky and tint2 commands in session files
-#upgradeBlobs
 
 Intro --one-view-only
 
