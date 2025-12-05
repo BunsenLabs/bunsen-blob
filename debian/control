@@ -30,7 +30,7 @@ Conflicts: bunsen-lock, bunsen-user-setup
 Recommends: bunsen-pipemenus,
   colordiff,
   conky-all,
-  nitrogen | feh,
+  feh | nitrogen,
   openbox,
   xfce4-panel,
   xfce4-panel-profiles
