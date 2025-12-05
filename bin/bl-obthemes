@@ -2,7 +2,7 @@
 #
 #    bl-obthemes: script to save or restore various GUI theme settings
 #    Copyright (C) 2015-2020 damo    <damo@bunsenlabs.org>
-#                  2018-2023 John Crawley <john@bunsenlabs.org>
+#                  2018-2025 John Crawley <john@bunsenlabs.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #
 #
 # Save options are for  Conky(s)
-#                       xfce4-panel
+#                       Xfce4-panel
 #                       Tint2
 #                       Openbox theme
 #                       GTK theme
@@ -72,7 +72,7 @@ No other CLI options are supported.
 Save options:
             Conky(s)
 
-            xfce4-panel
+            Xfce4-panel
 
             Tint2
 
@@ -173,7 +173,7 @@ OBPATH="$HOME/.config/bunsen/openbox" # used from BL Carbon
 STDOBPATH="$HOME/.config/openbox" # used by vanilla (not BL) openbox sessions
 RCFILE="$OBPATH/rc-xml" # used from BL Carbon
 OLDRCFILE="$STDOBPATH/bl-rc.xml" # up to Boron, used the BunsenLabs file name
-STDRCFILE="$STDOBPATH/rc.xml" # if it exists, used by vanilla (not BL) openbox sessions (and ignored by this script)
+#STDRCFILE="$STDOBPATH/rc.xml" # if it exists, used by vanilla (not BL) openbox sessions (and ignored by this script)
 GTK2=".gtkrc-2.0"
 GTK2MINE=".gtkrc-2.0.mine"
 GTK3=".config/gtk-3.0"
@@ -209,7 +209,7 @@ LDM="lightdm-gtk-greeter.conf"
 OBSESSION=''
 
 # used by forkncheck()
-#FORKWAIT='0.3' # time to wait before checking if a forked process is still running
+FORKWAIT='0.3' # time to wait before checking if a forked process is still running
 # use any value which is  accepted by 'sleep'
 
 # used when translating paths in system preset themes
@@ -322,7 +322,7 @@ wallpath_sys2="/usr/share/backgrounds"
 wallpath_usr="$HOME/Pictures/wallpapers"
 wallpaths=("$wallpath_sys1" "$wallpath_usr" "$wallpath_sys2")
 
-### DIALOG VARIABLES
+### YAD DIALOG VARIABLES
 TITLE="BLOB Themes Manager"
 ICON="distributor-logo-bunsenlabs"
 yad_args=( '--center'  '--borders=20' "--window-icon=$ICON" )
@@ -394,7 +394,7 @@ yad_fatal_error() {
 # This should not be needed once error handling is all done separately.
 # shellcheck disable=SC2317
 trap_error(){
-    local msg="An error ocurred on line ${1}, running function '${2}', command '${3}'.\nPlease consider reporting this to the developers."
+    local msg="An error ocurred on line ${1}, running function '${2}', command '${3}'.\nPlease consider reporting this to the developers."$'\n'
     echo -e "$0: $msg" >&2
     if yad_warning_option "$msg"
     then
@@ -439,7 +439,7 @@ declareDependencies(){     # adapted from bl-includes
 firstChecks() {
     # Do not run as root (Bad Things may happen).
     if [[ $( id -u ) -eq 0 ]]; then
-        echo $"$0: Error: This script should not be run by root." >&2
+        echo "$0: Error: This script should not be run by root."$'\n' >&2
         exit 1
     fi
 
@@ -481,16 +481,16 @@ firstChecks() {
 # Do not use with processes like conky, which can fork themselves to a new pid.
 # Global $FORKWAIT is time to wait before checking if process is still running.
 # Arguments are the command to run.
-#forkncheck() {
-#    local pid
-#    set -m
-#    "$@" >/dev/null 2>&1 & pid=$!
-#    disown
-#    set +m
-#    sleep "$FORKWAIT" || return 1 # check for bad syntax in $FORKWAIT
-#    kill -0 "$pid" >/dev/null 2>&1 && return 0
-#    return 1 # process is not running
-#}
+forkncheck() {
+    local pid
+    set -m
+    "$@" >/dev/null 2>&1 & pid=$!
+    disown
+    set +m
+    sleep "$FORKWAIT" || return 1 # check for bad syntax in $FORKWAIT
+    kill -0 "$pid" >/dev/null 2>&1 && return 0
+    return 1 # process is not running
+}
 
 # Kill only with exact match, and only if process belongs to executor.
 # Returns success even if process is not running.
@@ -498,7 +498,7 @@ firstChecks() {
 function safeKill() {
     local procname
     procname=$1
-    debug "killing $procname"
+    debug "\nkilling $procname"
     pgrep -x -u "$USER" "$procname" >/dev/null || {
         debug "${procname}: no process running"
         return 0
@@ -512,7 +512,7 @@ function safeKill() {
 # $1 is path to keyfile (eg gtk3 settings.ini)
 # global associative array KEYS will be generated
 parseKeyfile(){
-    [[ -f $1 ]] || { echo "$1 is not a file." >&2; return 1;}
+    [[ -f $1 ]] || { echo -e "$1 is not a file.\n" >&2; return 1;}
     unset KEYS
     declare -Ag KEYS
     local entry_regex line key value
@@ -531,7 +531,7 @@ parseKeyfile(){
         esac
         KEYS["${key}"]="${value}"
     done < "$1"
-    (( ${#KEYS[@]} )) || { echo "$0: parsing file ${1}: global array KEYS is empty" >&2; return 1;}
+    (( ${#KEYS[@]} )) || { echo -e "$0: parsing file ${1}: global array KEYS is empty\n" >&2; return 1;}
 }
 
 # This function is used when restoring icons without GTK or vice versa.
@@ -544,10 +544,10 @@ editKeyfile(){
         type=gtk2
         shift
     }
-    [[ -f $1 ]] || { echo "$1 is not a file." >&2; return 1;}
+    [[ -f $1 ]] || { echo -e "$1 is not a file.\n" >&2; return 1;}
     file=$1
     shift
-    parseKeyfile "$file" || { echo "$0: editKeyfile() Failed to parse ${file}." 2>&1; return 1;} # generates global KEYS for the two checks
+    parseKeyfile "$file" || { echo -e "$0: editKeyfile() Failed to parse ${file}.\n" >&2; return 1;} # generates global KEYS for the two checks
     boolean_enum_re='^([01]|GTK_[[:upper:]_]*)$' # in GTK2 gtkrc files these values are not quoted
     sed_args=()
     while [[ $1 ]]; do
@@ -556,7 +556,7 @@ editKeyfile(){
         value="${1#*=}"
         shift
         [[ -v KEYS["$name"] ]] || {
-            echo "$0: config key $name does not exist" >&2
+            echo -e "$0: config key $name does not exist\n" >&2
             return 1
         }
         [[ ${KEYS["$name"]} = "${value}" ]] && {
@@ -581,7 +581,7 @@ editKeyfile(){
             cp "$file" "$bkp_file" || return 1
             debug "made backup copy of $file"
         }
-        sed "${sed_args[@]}" "$file" || { echo "$0: sed error" >&2; return 1;}
+        sed "${sed_args[@]}" "$file" || { echo -e "$0: sed error\n" >&2; return 1;}
     }
     return 0
 }
@@ -622,7 +622,7 @@ function Intro(){
     Openbox theme
     GTK theme
     Conkys
-    xfce4-panel
+    Xfce4-panel
     Tint2
     Desktop Background
     Alt Menu (dmenu)
@@ -641,12 +641,12 @@ function Intro(){
         if (( NUMDIRS > 0 ));then
             yad "${yad_args[@]}" "--text=$TXTINTRO" \
             --title="$TITLE" --borders=30 \
-            --button="_Save Current Blob:0" --button="_View Saved Blobs:2" $HLPBTN $CLOSE
+            --button="_Save New Blob:0" --button="_View Saved Blobs:2" $HLPBTN $CLOSE
 
         else
             yad "${yad_args[@]}" "--text=$TXTINTRO" \
             --title="$TITLE" --borders=30 \
-            --button="_Save Current Blob:0" $HLPBTN $CLOSE
+            --button="_Save New Blob:0" $HLPBTN $CLOSE
 
         fi
         case $? in
@@ -661,7 +661,7 @@ function Intro(){
             10) yad --button="OK":0 --center --window-icon=distributor-logo-bunsenlabs --text-info --title="The BLOB themes manager" --filename="/usr/share/bunsen/docs/helpfiles/helpfile-blob.txt" --width=900 --height=700 --fontname=Monospace
                 Intro
                 ;;
-            *)  echo "RETURN ERROR" >&2
+            *)  echo "${0}: Intro() RETURN ERROR $?" >&2
                 exit 1
                 ;;
         esac
@@ -685,7 +685,7 @@ function setName(){  # set name of collection, make dir and session settings fil
     msg="  Configurations will be saved to a new directory in  \
     \n  $USRCONFIGPATH\n\n  Enter name of new collection...  "
     msg2="  No file specified for new saved session.\n\n  Try again?"
-    msg3='  Entered name contained unusual characters.\n\n  Try again?'
+    msg3='  Please use only alphanumeric characters or space, dot, underbar or dash.\n\n  Try again?'
     local del time txt
     del=0
     while true;do  # loop dialog if nothing is selected
@@ -750,7 +750,7 @@ function saveFiles(){
         src_file="$HOME/$i"
         target_file="$CONFIGDIR/user/$i"
         saveFileAbs "$src_file" "$target_file" || {
-            echo "$0: Failed to save $src_file" >&2
+            echo -e "$0: Failed to save ${src_file}\n" >&2
             return 1
         }
     done
@@ -765,12 +765,12 @@ function saveFileAbs(){
     src_file="$1"
     [[ -L "$src_file" ]] && debug "$src_file is a symbolic link, pointing to $(readlink -f "$src_file")"
     [[ -r $src_file ]] || {
-        echo "$0: Cannot read source file $src_file" >&2
+        echo -e "$0: Cannot read source file ${src_file}\n" >&2
         return 1
     }
     target_file="$2"
     [[ $target_file = $CONFIGDIR/* ]] || {
-        echo "$0: Target is not inside $CONFIGDIR" >&2
+        echo -e "$0: Target is not inside ${CONFIGDIR}\n" >&2
         return 1
     }
     target_dir="${target_file%/*}"
@@ -799,7 +799,33 @@ function saveDconf(){ # passed dconf directory as #1 and name of app (for dumpfi
     then
         debug "dconf $dconfdir is default, created empty file $dumpfile"
     else
-        "$0: failed to create $dumpfile" >&2
+        echo -e "$0: failed to create ${dumpfile}\n" >&2
+        return 1
+    fi
+}
+
+# CONFIGDIR is global set by setName()
+saveXfconf(){ # passed xfconf channel as $1 and name of app as $2 (usually the same)
+    local xfchan appname dumpfile
+    xfchan=$1
+    appname=$2
+    mkdir -p "$CONFIGDIR/xfconf" || return 1
+    dumpfile="$CONFIGDIR/xfconf/${appname// /_}" # remove any spaces from name
+    xfconf-query -c "$xfchan" -lv > "$dumpfile" || return 1
+    if [[ -s $dumpfile ]]
+    then
+        grep -q '<<UNSUPPORTED>>' "$dumpfile" && {
+            echo -e "${0}: ${dumpfile} contains some unusable array properties, deleting\n" >&2
+            rm "$dumpfile"
+            yad_warning "Cannot save settings for $appname in xfconf channel $xfchan"
+            return 1
+        }
+        debug "Saved xfconf channel $xfchan to $dumpfile"
+    elif [[ -e $dumpfile ]]
+    then
+        debug "xfconf $xfchan is empty, created empty file $dumpfile"
+    else
+        echo -e "$0: failed to create ${dumpfile}\n" >&2
         return 1
     fi
 }
@@ -839,7 +865,7 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
                 ;;
             esac
         else
-            echo "$0:  No nitrogen or feh files found" >&2
+            echo -e "$0:  No nitrogen or feh files found\n" >&2
             bgsetter="None"
         fi
     }
@@ -848,30 +874,30 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
     case "$bgsetter" in
     NITROGEN)
         getNitrogen || {
-            echo "$0: Failed to save nitrogen config." >&2
+            echo -e "$0: Failed to save nitrogen config.\n" >&2
             return 1
         }
         ;;
     FEH)
         getFeh || {
-            echo "$0: Failed to save feh config." >&2
+            echo -e "$0: Failed to save feh config.\n" >&2
             return 1
         }
         ;;
     XFDESKTOP)
         getXfdesktop || {
-            echo "$0: Failed to save xfdesktop config." >&2
+            echo -e "$0: Failed to save xfdesktop config.\n" >&2
             return 1
         }
         ;;
     PCMANFM)
         getPcmanfm || {
-            echo "$0: Failed to save pcmanfm config." >&2
+            echo -e "$0: Failed to save pcmanfm config.\n" >&2
             return 1
         }
         ;;
     None)
-        echo "$0: No background-setting application found" >&2
+        echo -e "$0: No background-setting application found.\n" >&2
         echo -e "Background cannot be set\n" >> "$LISTMSG"
         ;;
     esac
@@ -885,7 +911,7 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
 function getNitrogen(){  # get Nitrogen saved backgrounds
     local nfile="$CONFIGDIR/user/$NITROFILE" imgfile imglist
     saveFiles "$NITROFILE" || {
-        echo "$0: Failed to save nitrogen configs file $NITROFILE" >&2
+        echo -e "$0: Failed to save nitrogen configs file ${NITROFILE}\n" >&2
         return 1
     }
     img="" # img is local to getBg
@@ -907,7 +933,7 @@ function getNitrogen(){  # get Nitrogen saved backgrounds
 function getFeh(){    # get Feh saved backgrounds
     local ffile="$CONFIGDIR/user/$FEHFILE" imglist
     saveFiles "$FEHFILE" || {
-        echo "$0: Failed to save feh configs file $FEHFILE" >&2
+        echo -e "$0: Failed to save feh configs file ${FEHFILE}\n" >&2
         return 1
     }
     img="" # img is local to getBg
@@ -945,7 +971,7 @@ function getXfdesktop(){
 function getPcmanfmProfile(){
     local cmdline profile
     cmdline=$(pgrep -afx 'pcmanfm[[:blank:]].*') || {
-        echo "$0: pcmanfm is not running" >&2
+        echo -e "$0: pcmanfm is not running\n" >&2
         return 1
     }
     cmdline=${cmdline#* } # remove pid
@@ -965,7 +991,7 @@ function getPcmanfm(){
     local profile ws line
     debug "Getting wallpaper set by pcmanfm"
     profile=$(getPcmanfmProfile) || {
-        echo "$0: failed to get pcmanfm profile"
+        echo -e "$0: failed to get pcmanfm profile\n" >&2
         return 1
     }
     debug "pcmanfm profile is $profile"
@@ -1089,7 +1115,7 @@ getConky(){
                     ((save)) && debug "Saving copy of $conkyfile"
                 fi
                 ((save)) && { saveFiles "$conkyfile" || {
-                    echo "$0: Failed to save conky config file $conkyfile" >&2
+                    echo -e "$0: Failed to save conky config file ${conkyfile}\n" >&2
                     return 1
                     }
                 }
@@ -1118,7 +1144,7 @@ getConky(){
                 ((save)) && debug "Saving copy of $conkyfile"
             fi
             ((save)) && { saveFiles "$conkyfile" || {
-                echo "$0: Failed to save conky config file $conkyfile" >&2
+                echo -e "$0: Failed to save conky config file ${conkyfile}\n" >&2
                 return 1
                 }
             }
@@ -1138,7 +1164,7 @@ getConky(){
 getXfce4Panel(){
     local xfpdir
 
-    pgrep -x xfce4-panel -u "$USER" >/dev/null || {
+    pgrep -x -u "$USER" xfce4-panel >/dev/null || {
         debug "No xfce4-panel instances are running"
             echo "[XFPANEL] none" >> "$SETTINGS"
             echo -e "No xfce4-panel.\n(Any running instances will be stopped.)\n" >> "$LISTMSG"
@@ -1150,7 +1176,7 @@ getXfce4Panel(){
         return 1
     }
 
-    xfpdir="$CONFIGDIR/user/$XFPANELPROFDIR/"
+    xfpdir="$CONFIGDIR/user/$XFPANELPROFDIR"
     mkdir -p "$xfpdir"
     xfce4-panel-profiles save "$xfpdir/${NEWNAME}.tar.bz2" || {
         debug "Failed to save xfce4-panel settings to $xfpdir/${NEWNAME}.tar.bz2"
@@ -1184,7 +1210,7 @@ getTint(){
 
     :> "$saved_tintsession"
 
-    pgrep -x tint2 -u "$USER" >/dev/null || {
+    pgrep -x -u "$USER" tint2 >/dev/null || {
         debug "No tint2 instances are running"
         ((save)) && {
             echo "[TINT2] none" >> "$SETTINGS"
@@ -1196,7 +1222,7 @@ getTint(){
     while read -r pid; do
         mapfile -d '' -t command < "/proc/${pid}/cmdline"
         [[ ${command[0]} = 'tint2' ]]  || {
-            echo "$0: pgrep parsing failed: command is not 'tint2'" >&2
+            echo -e "$0: pgrep parsing failed: command is not 'tint2'\n" >&2
             continue
         }
         if (( ${#command[@]} > 1 )); then
@@ -1206,7 +1232,7 @@ getTint(){
             tpath='.config/tint2/tint2rc'
         fi
         [[ -f $HOME/$tpath ]] || {
-            echo "$0: pgrep tint2 parsing failed: $HOME/$tpath is not a file" >&2
+            echo -e "$0: pgrep tint2 parsing failed: $HOME/$tpath is not a file\n" >&2
             continue
         }
         echo "$tpath" >> "$saved_tintsession"
@@ -1221,10 +1247,10 @@ getTint(){
             debug "saving copy of $tpath"
         fi
         saveFiles "$tpath" || {
-            echo "$0: Failed to save tint2 config file $tpath" >&2
+            echo -e "$0: Failed to save tint2 config file ${tpath}\n" >&2
             return 1
         }
-    done < <(pgrep -x 'tint2' -u "$USER")
+    done < <(pgrep -x -u "$USER" 'tint2')
 
     ((save)) && {
         echo "[TINT2] $TINTCMDS" >> "$SETTINGS" # $TINTCMDS only fallback if sessionfile is missing
@@ -1235,16 +1261,19 @@ getTint(){
 
 # copy <theme> section from bl-rc.xml to obtheme.txt
 function getOBtheme(){
-    local obfile obtheme xpath
+    local obfile rc_file obtheme xpath
     obfile="$CONFIGDIR/obtheme.txt"
-    [[ -r $RCFILE ]] || {
-        RCFILE="$OLDRCFILE"
+    if [[ -r $RCFILE ]]
+    then
+        rc_file=$RCFILE
+    elif [[ -r $OLDRCFILE ]]
+    then
+        rc_file=$OLDRCFILE
         debug "Getting openbox theme from $OLDRCFILE instead of $RCFILE"
-    }
-    [[ -r $RCFILE ]] || {
-        echo "$0: Openbox config file $RCFILE not found" >&2
+    else
+        echo -e "$0: Neither openbox config file $RCFILE nor $OLDRCFILE found\n" >&2
         return 1
-    }
+    fi
     xsl='<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ob="http://openbox.org/3.4/rc">
   <xsl:output method="xml" encoding="UTF-8" omit-xml-declaration="yes" />
@@ -1266,30 +1295,30 @@ function getOBtheme(){
 </xsl:stylesheet>
 '
 # TODO try <(printf '%s' "$xsl") instead of cat+herestring
-    xmlstarlet transform <(cat <<<"$xsl") "$RCFILE" > "$obfile" || return 1
+    xmlstarlet transform <(cat <<<"$xsl") "$rc_file" > "$obfile" || return 1
     [[ -s $obfile ]] || {
-        echo "$0: Failed to generate Openbox theme settings in $obfile" >&2
+        echo -e "$0: Failed to generate Openbox theme settings in ${obfile}\n" >&2
         return 1
     }
     # $obfile has no namespace declarations, so '_:' syntax unnecessary
     xpath='/theme/name/text()'
     obtheme=$(xmlstarlet sel --template --value-of "$xpath" "$obfile")
     [[ -n $obtheme ]] || {
-        echo "$0: Failed to determine the Openbox theme name to be saved" >&2
+        echo -e "$0: Failed to determine the Openbox theme name to be saved\n" >&2
         return 1
     }
     echo "Openbox theme:  $obtheme" >> "$LISTMSG"
     echo "[OBTHEME] $obtheme" >> "$SETTINGS"
-    debug "copied Openbox theme (${obtheme}) section from $RCFILE"
+    debug "copied Openbox theme (${obtheme}) section from $rc_file"
 }
 
 function getGTKtheme(){
     saveFiles "$GTK2" "$GTK2MINE" "$GTK3/settings.ini" "$GTK3/gtk.css" "$GTK3x" || {
-        echo "$0: Failed to save the necessary GTK config files" >&2
+        echo -e "$0: Failed to save the necessary GTK config files\n" >&2
         return 1
     }
     getGTKname || {
-        echo "$0: Failed to parse $gtk3_settings" >&2
+        echo -e "$0: Failed to parse ${gtk3_settings}\n" >&2
         return 1
     }
 }
@@ -1298,7 +1327,7 @@ function getGTKname(){ # get saved GTK3 theme name and Icon theme name
     local gtk3_settings gtktheme icontheme txt
     gtk3_settings="$CONFIGDIR/user/$GTK3/settings.ini"
     # parseKeyfile generates global associative array KEYS
-    parseKeyfile "$gtk3_settings" || { echo "$0: getGTKname() Failed to parse $gtk3_settings." 2>&1; return 1;}
+    parseKeyfile "$gtk3_settings" || { echo -e "$0: getGTKname() Failed to parse ${gtk3_settings}\n" >&2; return 1;}
     gtktheme=${KEYS[gtk-theme-name]}
     echo "[GTK] $gtktheme" >> "$SETTINGS"
     icontheme=${KEYS[gtk-icon-theme-name]}
@@ -1312,7 +1341,7 @@ function getGTKname(){ # get saved GTK3 theme name and Icon theme name
 function getDmenu(){
     local txt
     saveFiles "$DMENU" || {
-        echo "$0: Failed to save demenu config file $DMENU" >&2
+        echo -e "$0: Failed to save demenu config file ${DMENU}\n" >&2
         return 1
     }
     txt="dmenu config:  ~/$DMENU\n"
@@ -1324,7 +1353,7 @@ function getDmenu(){
 function getLightdm(){
     local txt
     saveFileAbs "$LDMDIR/$LDM" "$CONFIGDIR/$LDM" || {
-        echo "$0: Failed to save LightDM config file $LDMDIR/$LDM to $CONFIGDIR/$LDM" >&2
+        echo -e "$0: Failed to save LightDM config file $LDMDIR/$LDM to ${CONFIGDIR}/${LDM}\n" >&2
         return 1
     }
     txt="Lightdm config:  $LDMDIR/$LDM\n(password will be needed to restore)\n"
@@ -1335,20 +1364,31 @@ function getLightdm(){
 
 # passed termfile as $1 and pickterm as $2 by saveSettings()
 function getTerminal(){
-    local termname termfile txt
+    local termfile termname txt
     termfile="$1"
     termname="$2"
     case "$termfile" in # dconf "directories" get prefixed with %dconf% in checkTerm()
     '%dconf%'*)
         saveDconf "${termfile#'%dconf%'}" "$termname" || {
-            echo "$0: Failed to save $termname dconf config: $termfile" >&2
+            echo -e "$0: Failed to save $termname dconf config: ${termfile}\n" >&2
             return 1
         }
-        txt="$termname dconf config: ${termfile#'%dconf%'}\n"
+        txt="$termname dconf path: ${termfile#'%dconf%'}\n"
+        ;;
+    '%xfconf%'*) # xfconf channel names are prefixed with %xfconf%
+        saveXfconf "${termfile#'%xfconf%'}" "$termname" || {
+            echo -e "$0: Failed to save $termname xfconf channel: ${termfile}\n" >&2
+            return 1
+        }
+        txt="$termname xfconf channel: ${termfile#'%xfconf%'}\n"
+        ;;
+    '')
+        yad_warning "No $termname config available"
+        return 1
         ;;
     *)
         saveFiles "$termfile" || {
-            echo "$0: Failed to save $termname configs file $termfile" >&2
+            echo -e "$0: Failed to save $termname configs file ${termfile}\n" >&2
             return 1
         }
         txt="$termname config:  ~/$termfile\n"
@@ -1362,7 +1402,7 @@ function getTerminal(){
 function getXconfig(){
     local txt
     saveFiles "$XFILE" || {
-        echo "$0: Failed to save X configs file $XFILE" >&2
+        echo -e "$0: Failed to save X configs file ${XFILE}\n" >&2
         return 1
     }
     txt="X config:  ~/$XFILE\n"
@@ -1374,7 +1414,7 @@ function getXconfig(){
 function getBashRC(){
     local txt
     saveFiles "$BASHRC" || {
-        echo "$0: Failed to save bash configs file $BASHRC" >&2
+        echo -e "$0: Failed to save bash configs file ${BASHRC}\n" >&2
         return 1
     }
     txt="Bash config:  ~/$BASHRC\n"
@@ -1387,7 +1427,7 @@ function getComp(){
     local txt
     [[ -r "$HOME/$COMPFILE" ]] || COMPFILE=$OLDCOMPFILE
     saveFiles "$COMPFILE" || {
-        echo "$0: Failed to save compositor configs file $COMPFILE" >&2
+        echo -e "$0: Failed to save compositor configs file ${COMPFILE}\n" >&2
         return 1
     }
     txt="Compositor settings: ~/$COMPFILE\n"
@@ -1403,7 +1443,7 @@ function getJgmenu(){
         return 0
     }
     saveFiles "$JGMENURC" || {
-        echo "$0: Failed to save jgmenu configs file $JGMENURC" >&2
+        echo -e "$0: Failed to save jgmenu configs file ${JGMENURC}\n" >&2
         return 1
     }
     txt="jgmenu settings: ~/$JGMENURC\n"
@@ -1543,8 +1583,16 @@ function checkTerm(){
         termfile='.config/terminator/config'
         pickterm='Terminator'
         ;;
+#    /usr/bin/xfce4-terminal.wrapper)
+#        termfile='.config/xfce4/terminal/terminalrc'
+#        pickterm='Xfce4-terminal'
+#        ;;
     /usr/bin/xfce4-terminal.wrapper)
-        termfile='.config/xfce4/terminal/terminalrc'
+        if [[ -f $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml ]]; then # only from Debian Trixie
+            termfile='%xfconf%xfce4-terminal'
+        elif [[ -f $HOME/.config/xfce4/terminal/terminalrc ]]; then
+            termfile='.config/xfce4/terminal/terminalrc'
+        fi
         pickterm='Xfce4-terminal'
         ;;
     /usr/bin/sakura)
@@ -1619,7 +1667,7 @@ function saveSettings(){
                             ;;
             "$pickterm" )   getTerminal "$termfile" "$pickterm"
                             ;;
-            *           )   echo "$0:  Unknown config value in saveSettings function" >&2
+            *           )   echo -e "$0:  Unknown config value in saveSettings function\n" >&2
                             exit 1
                             ;;
         esac
@@ -1647,7 +1695,7 @@ function checkICONS(){ # check if icon theme is still present
     debug "Checking for icon theme $1"
     for i in "${iconPaths[@]}";do # iconPaths defined at top
         if [[ -d "$i/$1" ]];then
-            debug "\n  Found $1 icon theme"
+            debug "  Found $1 icon theme"
             return 0
         fi
     done
@@ -1686,7 +1734,7 @@ function checkGTK(){    # check if gtk theme is still present
     debug "Checking for GTK theme $1"
     for i in "${gtkPaths[@]}";do # gtkPaths defined at top
         if [[ -d "$i/$1" ]];then
-            debug "\n  Found $1 GTK theme"
+            debug "  Found $1 GTK theme"
             return 0
         fi
     done
@@ -1724,7 +1772,7 @@ function restoreIcons(){
     current_gtk3_settings="$HOME/$GTK3/settings.ini"
     current_gtk2_settings="$HOME/$GTK2"
     new_gtk3_settings="$THEMEPATH/user/$GTK3/settings.ini"
-    parseKeyfile "$new_gtk3_settings" || { echo "$0: restoreIcons() Failed to parse $new_gtk3_settings." 2>&1; return 1;} # new GTK settings will not be restored, reading icon theme only
+    parseKeyfile "$new_gtk3_settings" || { echo -e "$0: restoreIcons() Failed to parse ${new_gtk3_settings}\n" >&2; return 1;} # new GTK settings will not be restored, reading icon theme only
     new_icon_theme=${KEYS[gtk-icon-theme-name]}
     unset KEYS
     debug "Setting icon theme $new_icon_theme found in $new_gtk3_settings"
@@ -1754,12 +1802,12 @@ function restoreGTK(){
     current_gtk2_settings="$HOME/$GTK2"
     current_gtk3_settings="$HOME/$GTK3/settings.ini"
     new_gtk3_settings="$THEMEPATH/user/$GTK3/settings.ini"
-    parseKeyfile "$current_gtk3_settings" || { echo "$0: restoreGTK() Failed to parse ${current_gtk3_settings}." 2>&1; return 1;} # settings before restoring files with new theme
+    parseKeyfile "$current_gtk3_settings" || { echo -e "$0: restoreGTK() Failed to parse ${current_gtk3_settings}\n" >&2; return 1;} # settings before restoring files with new theme
     current_gtk_theme=${KEYS[gtk-theme-name]}
     current_icon_theme=${KEYS[gtk-icon-theme-name]}
     unset KEYS
-    debug "current gtk theme is ${current_gtk_theme}, icon theme is $current_icon_theme"
-    parseKeyfile "$new_gtk3_settings" || { echo "$0: restoreGTK() Failed to parse $new_gtk3_settings." 2>&1; return 1;} # settings after restoring files with new theme
+    debug "\nCurrent gtk theme is ${current_gtk_theme}, icon theme is $current_icon_theme"
+    parseKeyfile "$new_gtk3_settings" || { echo -e "$0: restoreGTK() Failed to parse ${new_gtk3_settings}\n" >&2; return 1;} # settings after restoring files with new theme
     new_gtk_theme=${KEYS[gtk-theme-name]}
     new_icon_theme=${KEYS[gtk-icon-theme-name]}
     unset KEYS
@@ -1780,7 +1828,7 @@ function restoreGTK(){
     }
 
     [[ $restore_icons = 'true' ]] && {
-        debug "Setting icon theme $new_icon_theme found in $new_gtk3_settings"
+        debug "\nSetting icon theme $new_icon_theme found in $new_gtk3_settings"
         checkICONS "$new_icon_theme" || {
             local NOICOTXT="Icon theme <b>$new_icon_theme</b> not found\n\n  The current icon theme will be used."
             yad_warning "$NOICOTXT"
@@ -1809,9 +1857,9 @@ function restoreGTK(){
 function reloadGTK(){ # reload gtk theme after restoring saved config
     debug "\nReloading GTK theme..."
     if ((DEBUG_FLAG)); then
-        bl-reload-gtk23 --force && debug "\nbl-reload-gtk23: done\n" || echo "bl-reload-gtk23 failed" >&2
+        bl-reload-gtk23 --force && debug "\nbl-reload-gtk23: done\n" || echo -e "bl-reload-gtk23 failed\n" >&2
     else
-        bl-reload-gtk23 --force >/dev/null 2>&1 || echo "bl-reload-gtk23 failed" >&2
+        bl-reload-gtk23 --force >/dev/null 2>&1 || echo -e "bl-reload-gtk23 failed\n" >&2
     fi
 }
 
@@ -1820,9 +1868,9 @@ function jgmenu_write_gtkcache(){
     local gtktheme jgmenu_cachedir
     jgmenu_cachedir="$HOME/.cache/jgmenu"
     mkdir -p "$jgmenu_cachedir"
-    parseKeyfile "$1" || { echo "$0: jgmenu_write_gtkcache() Failed to parse $1" 2>&1; return 1;}
+    parseKeyfile "$1" || { echo -e "$0: jgmenu_write_gtkcache() Failed to parse ${1}\n" >&2; return 1;}
     gtktheme=${KEYS[gtk-theme-name]}
-    debug "Setting $gtktheme as GTK theme in jgmenu cache."
+    debug "\n  Setting $gtktheme as GTK theme in jgmenu cache."
     printf '%s' "$gtktheme" > "$jgmenu_cachedir/.last-gtktheme"
     unset KEYS
 }
@@ -1868,24 +1916,32 @@ urlencode() {
 # THEMEPATH and BKP_SFX are globals,
 # set by displayBlobs() and restoreSettings() respectively.
 function restoreOBrc(){
-    local themefile rcbkp xsl
+    local themefile rc_file ob_path rcbkp xsl
     themefile="$THEMEPATH/obtheme.txt"
     debug "restoring OB theme from $themefile"
-    [[ -r $RCFILE ]] || {
+    if [[ -w $RCFILE ]]
+    then
+        rc_file=$RCFILE
+        ob_path=$OBPATH
+    elif [[ -w $OLDRCFILE ]]
+    then
         debug "Restoring theme from $themefile to $OLDRCFILE instead of $RCFILE"
-        RCFILE="$OLDRCFILE"
-    }
-    # backup bl-rc.xml first
-    rcbkp="${RCFILE}${BKP_SFX}"
-    cp "$RCFILE" "$rcbkp"
+        rc_file="$OLDRCFILE"
+        ob_path=$STDOBPATH
+    fi
+    # backup rc.xml first
+    rcbkp="${rc_file}${BKP_SFX}"
+    cp "$rc_file" "$rcbkp"
     # remove older backups
-    for f in "$OBPATH"/*.blob~ ;do
-        if [[ $f -ot $rcbkp ]];then
+    for f in "$ob_path"/*.blob~ ;do
+        if [[ -f $f && $f -ot $rcbkp ]];then
             rm "$f"
+            debug "removed old rc.xml backup $f"
         fi
     done
-    debug "\n  $RCFILE backed up as $rcbkp"
-    # Replace <theme> element in $RCFILE from $themefile:
+    debug "\n  $rc_file backed up as $rcbkp"
+    # Replace <theme> element in $rc_file from $themefile:
+    # shellcheck disable=SC2016
     xsl='<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ob="http://openbox.org/3.4/rc" >
   <xsl:output method="xml" encoding="UTF-8" />
@@ -1914,10 +1970,10 @@ function restoreOBrc(){
 </xsl:stylesheet>
 '
     themefile="file://$(urlencode "$themefile")"
-    xmlstarlet transform <(cat <<<"$xsl") -p themefile="'$themefile'"  "$RCFILE" > "${RCFILE}_tmp" || return 1
-    cat "${RCFILE}_tmp" > "$RCFILE" || return 1
-    rm "${RCFILE}_tmp"
-    debug "\n  $RCFILE edited for OB theme"
+    xmlstarlet transform <(cat <<<"$xsl") -p themefile="'$themefile'"  "$rc_file" > "${rc_file}_tmp" || return 1
+    cat "${rc_file}_tmp" > "$rc_file" || return 1
+    rm "${rc_file}_tmp"
+    debug "\n  $rc_file edited for OB theme"
     openbox --reconfigure || return 1
     debug "\n Openbox reconfigured"
 }
@@ -1968,7 +2024,7 @@ function checkWallpaper(){
             then
                 debug "Image package $pkg was installed."
                 found_imgpath=$(dpkg-query --listfiles "$pkg" | grep "/${imgname//./\\.}$") || {
-                    echo "${0}: installed $pkg but $imgname was not found" >/&2
+                    echo -e "${0}: installed $pkg but $imgname was not found\n" >/&2
                     yad_warning "Installed package $pkg but could not find $imgname"
                     debug "\n  Wallpaper $imgname  was not found in $pkg"
                     return 1
@@ -2021,16 +2077,16 @@ function parseFehfile(){ # get first image set in a feh file
 function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited from restoreSettings()
     case $1 in
     NITROGEN)
-        restoreNitrogen || { echo "$0: failed to apply wallpaper with nitrogen" >&2; return 1; }
+        restoreNitrogen || { echo -e "$0: failed to apply wallpaper with nitrogen\n" >&2; return 1; }
         ;;
     FEH)
-        restoreFeh || { echo "$0: failed to apply wallpaper with feh" >&2; return 1; }
+        restoreFeh || { echo -e "$0: failed to apply wallpaper with feh\n" >&2; return 1; }
         ;;
     XFDESKTOP)
-        restoreXfdesktop || { echo "$0: failed to apply wallpaper with xfdesktop" >&2; return 1; }
+        restoreXfdesktop || { echo -e "$0: failed to apply wallpaper with xfdesktop\n" >&2; return 1; }
         ;;
     PCMANFM)
-        restorePcmanfm || { echo "$0: failed to apply wallpaper with pcmanfm" >&2; return 1; }
+        restorePcmanfm || { echo -e "$0: failed to apply wallpaper with pcmanfm\n" >&2; return 1; }
         ;;
     esac
 }
@@ -2039,7 +2095,7 @@ function restoreNitrogen(){
     local nitroimg need_edit=false
     debug "Using nitrogen to set wallpaper"
     nitroimg=$(parseNitrofile "$THEMEPATH/user/${NITROFILE}")
-    [[ -n $nitroimg ]] || { echo "$0: failed to parse new $NITROFILE" >&2; return 1; }
+    [[ -n $nitroimg ]] || { echo -e "$0: failed to parse new ${NITROFILE}\n" >&2; return 1; }
     debug "Image $nitroimg is set in $THEMEPATH/user/${NITROFILE}"
     checkWallpaper "$nitroimg"
     case $? in
@@ -2059,11 +2115,11 @@ function restoreNitrogen(){
         return 0
         ;;
     esac
-    restoreFiles "$NITROFILE" || { echo "$0: failed to apply $NITROFILE" >&2; return 1; }
+    restoreFiles "$NITROFILE" || { echo -e "$0: failed to apply ${NITROFILE}\n" >&2; return 1; }
     [[ $need_edit = true ]] && {
         debug "Replacing $nitroimg with $fixed_img in ${HOME}/${NITROFILE}..."
-        sed -i "s/${nitroimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${NITROFILE}" || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
-        [[ $( parseNitrofile "${HOME}/${NITROFILE}" ) = "${fixed_img}" ]] || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
+        sed -i "s/${nitroimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${NITROFILE}" || { echo -e "$0: failed to edit ${NITROFILE}\n" >&2; return 1; }
+        [[ $( parseNitrofile "${HOME}/${NITROFILE}" ) = "${fixed_img}" ]] || { echo -e "$0: failed to edit ${NITROFILE}\n" >&2; return 1; }
     }
     nitrogen --restore
 }
@@ -2072,7 +2128,7 @@ function restoreFeh(){
     local fehimg need_edit=false
     debug "Using feh to set wallpaper"
     fehimg=$(parseFehfile "$THEMEPATH/user/${FEHFILE}")
-    [[ -n $fehimg ]] || { echo "$0: failed to parse new $FEHFILE" >&2; return 1; }
+    [[ -n $fehimg ]] || { echo -e "$0: failed to parse new ${FEHFILE}\n" >&2; return 1; }
     debug "Image $fehimg is set in $THEMEPATH/user/${FEHFILE}"
     checkWallpaper "$fehimg"
     case $? in
@@ -2092,11 +2148,11 @@ function restoreFeh(){
         return 0
         ;;
     esac
-    restoreFiles "$FEHFILE" || { echo "$0: failed to apply $FEHFILE" >&2; return 1; }
+    restoreFiles "$FEHFILE" || { echo -e "$0: failed to apply ${FEHFILE}\n" >&2; return 1; }
     [[ $need_edit = true ]] && {
         debug "Replacing $fehimg with $fixed_img in ${HOME}/${FEHFILE}..."
-        sed -i "s/${fehimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${FEHFILE}" || { echo "$0: failed to edit $FEHFILE" >&2; return 1; }
-        [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo "$0: failed to edit $NITROFILE" >&2; return 1; }
+        sed -i "s/${fehimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${FEHFILE}" || { echo -e "$0: failed to edit ${FEHFILE}\n" >&2; return 1; }
+        [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo -e "$0: failed to edit ${NITROFILE}\n" >&2; return 1; }
     }
     # shellcheck source=/dev/null
     source "$HOME/$FEHFILE"
@@ -2106,7 +2162,7 @@ function restoreXfdesktop(){
     local ws wallpaper=$img # img is inherited from restoreSettings via restoreBg()
     ws=$(xdotool get_desktop)
     pgrep -fx "xfdesktop" -u "$USER" >/dev/null || {
-        echo "$0: xfdesktop is not running"
+        echo -e "$0: xfdesktop is not running\n" >&2
         return 1
     }
     debug "Using xfdesktop to set wallpaper $wallpaper on desktop ${ws}"
@@ -2136,7 +2192,7 @@ function restoreXfdesktop(){
     while read -r prop
     do
         xfconf-query -c xfce4-desktop -p "$prop" --set "$wallpaper" || {
-            echo "$0: failed to set $wallpaper to $prop" >&2
+            echo -e "$0: failed to set $wallpaper to ${prop}\n" >&2
             return 1
         }
     done <<< "$props"
@@ -2152,7 +2208,7 @@ function restorePcmanfm(){
     local re wallpaper=$img # img is inherited from restoreSettings via restoreBg()
     re='pcmanfm[[:blank:]].*--desktop'
     pgrep -fx "$re" -u "$USER" >/dev/null || {
-        echo "$0: pcmanfm is not setting the wallpaper"
+        echo -e "$0: pcmanfm is not setting the wallpaper\n" >&2
         return 1
     }
     debug "Using pcmanfm to set wallpaper $img"
@@ -2175,7 +2231,7 @@ function restorePcmanfm(){
         ;;
     esac
     pcmanfm --set-wallpaper="$wallpaper" || {
-        echo "$0: pcmanfm failed to set $wallpaper as wallpaper"
+        echo -e "$0: pcmanfm failed to set $wallpaper as wallpaper\n" >&2
         return 1
     }
 }
@@ -2193,7 +2249,7 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
             do
                 [[ -f "$i" ]] || continue
                 debug "applying conky file $i"
-                restoreFiles "$i" || echo "$0: failed to apply conky file $i" >&2
+                restoreFiles "$i" || echo -e "$0: failed to apply conky file ${i}\n" >&2
             done
             shopt -u globstar dotglob nullglob
         }
@@ -2212,11 +2268,11 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
             echo "$conkycmds" > "$saved_conkysession"
         fi
     else
-        echo "$0: cannot restore conky, there is no session information." >&2
+        echo -e "$0: cannot restore conky, there is no session information.\n" >&2
         return 1
     fi
     restoreFiles "$CONKYSESSION" || {
-        echo "$0: failed to restore conky session $saved_conkysession" >&2
+        echo -e "$0: failed to restore conky session ${saved_conkysession}\n" >&2
         return 1
     }
     hash bl-conky-session || return 1 # bl-conky-session should be available - it comes with bl-obthemes in bunsen-utilities
@@ -2227,45 +2283,54 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
     debug "\n  Restored Conky\n"
 }
 
-restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (currently empty)
+restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (may be "none")
     local xfpdir xfpfile missing_commands=() i=''
-    debug "restoring xfce4-panel settings"
+
+    [[ $1 = 'none' ]] && {
+        debug 'No xfce4-panel was running in this saved session.
+Any running xfce4-panel will now be stopped'
+        pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
+        return 0
+    }
 
     for i in xfce4-panel xfce4-panel-profiles
     do
         hash "$i" 2>/dev/null || missing_commands+=(" $i")
     done
     [[ ${missing_commands[0]} ]] && {
-        debug "xfce4-panel or xfce4-panel-profiles are missing, not restoring"
+        debug "missing: ${missing_commands[*]}, not restoring xfce4-panel"
         yad_warning "Please install:
     ${missing_commands[*]}
 to use xfce4-panel settings."
         return 1
     }
 
+    debug "restoring xfce4-panel settings"
+
     xfpdir="$THEMEPATH/user/$XFPANELPROFDIR"
     xfpfile="${themename}.tar.bz2"
     debug "using xfce4-profile $xfpdir/$xfpfile"
     [[ -f $xfpdir/$xfpfile ]] || {
-        echo "$0: Cannot find xfce4-panel profile $xfpdir/$xfpfile" >&2
+        echo -e "$0: Cannot find xfce4-panel profile ${xfpdir}/${xfpfile}\n" >&2
         return 1
     }
     cp "$xfpdir/$xfpfile" "$HOME/$XFPANELPROFDIR" || {
-        echo "$0: failed to copy $xfpdir/$xfpfile to $HOME/$XFPANELPROFDIR" >&2
+        echo -e "$0: failed to copy $xfpdir/$xfpfile to $HOME/${XFPANELPROFDIR}\n" >&2
         return 1
     }
 
-    pgrep xfce4-panel || {
+    pgrep -x -u "$USER" xfce4-panel || {
         debug "xfce4-panel not running, starting it now"
-        xfce4-panel
+        forkncheck xfce4-panel
     }
 
     debug "loading new xfce4-panel profile"
     xfce4-panel-profiles load "$HOME/$XFPANELPROFDIR/$xfpfile" || {
-        echo "$0: failed to load xfce4-panel profile $HOME/$XFPANELPROFDIR/$xfpfile" >&2
+        echo -e "$0: failed to load xfce4-panel profile ${HOME}/${XFPANELPROFDIR}/${xfpfile}\n" >&2
         return 1
     }
 
+    debug "\n Restored Xfce4-panel\n"
 }
 
 # generates global array T2KEYS
@@ -2285,15 +2350,39 @@ to use xfce4-panel settings."
 #    done < "$1"
 #}
 
-function restoreTint2(){    # $1 = $VAL from restoreSettings()
-    local tintcmds user_tintsession saved_tintsession
+function restoreTint2(){    # [ --legacy ] $VAL from restoreSettings()
+    local msg tintcmds user_tintsession saved_tintsession
+
+    [[ $1 = --legacy ]] && {
+        hash 'xfce4-panel' && {
+            debug 'xfce4-panel is installed'
+            msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
+If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.'
+            pgrep -x -u "$USER" xfce4-panel && {
+                msg+='\nIf you abort restoring tint2, xfce4-panel will be used instead.'
+            }
+            yad_warning "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
+                debug 'Aborted restoring tint2 settings'
+                return 0
+            }
+            pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
+        }
+        shift
+    }
+
+    hash 'tint2' || {
+        debug 'tint2 is not installed, not restoring tint2 panel settings'
+        yad_warning 'Please install the tint2 package to restore tint2 panel settings.'
+        return 1
+    }
+
     tintcmds="${1//;/$'\n'}"
     user_tintsession="$HOME/$TINTSESSION"
     saved_tintsession="$THEMEPATH/user/$TINTSESSION"
     # restore any tint2 configs that have been saved
     # assume they are all in the tint2 directory
     [[ -d "$THEMEPATH/user/.config/tint2" ]] || {
-        echo "$0: cannot restore tint2, directory $THEMEPATH/user/.config/tint2 does not exist" >&2
+        echo -e "$0: cannot restore tint2, directory $THEMEPATH/user/.config/tint2 does not exist\n" >&2
         return 1
     }
     if [[ -f "$saved_tintsession" ]]
@@ -2310,17 +2399,17 @@ function restoreTint2(){    # $1 = $VAL from restoreSettings()
             echo "$tintcmds" > "$saved_tintsession"
         fi
     else
-        echo "$0: cannot restore tint2, there is no session information." >&2
+        echo -e "$0: cannot restore tint2, there is no session information.\n" >&2
         return 1
     fi
     restoreFiles  '.config/tint2' || { # restoreFiles will restore whole directory with contents
-        echo "$0: failed to apply user/.config/tint2 directory in $THEMEPATH" >&2
+        echo -e "$0: failed to apply user/.config/tint2 directory in ${THEMEPATH}\n" >&2
         return 1
     }
     if hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
     then
         bl-tint2-session "$user_tintsession" || {
-            echo "$0: failed to start tint2 session $user_tintsession with bl-tint2-session" >&2
+            echo -e "$0: failed to start tint2 session $user_tintsession with bl-tint2-session\n" >&2
             return 1
         }
     fi
@@ -2332,7 +2421,7 @@ function restoreTint2(){    # $1 = $VAL from restoreSettings()
 function restoreLightdm(){   # need sudo to restore lightdm-gtk-greeter.conf
     local msg ret
     [[ -r "$THEMEPATH/$LDM" ]] || {
-        echo "$0: Cannot read file $THEMEPATH/$LDM" >&2
+        echo -e "$0: Cannot read file ${THEMEPATH}/${LDM}\n" >&2
         return 1
     }
     diff -qBEbZ "$THEMEPATH/$LDM" "$LDMDIR/$LDM" >/dev/null && {
@@ -2350,12 +2439,12 @@ function restoreLightdm(){   # need sudo to restore lightdm-gtk-greeter.conf
             return 0
         elif [[ ${ret[0]} = 1 ]]
         then
-            msg="Authentication cancelled\n\nlightdm-gtk-greeter.conf was not applied"
-            echo "$0: $msg" >&2
+            msg="Authentication cancelled\n\nlightdm-gtk-greeter.conf was not applied\n"
+            echo -e "$0: $msg" >&2
             return 1
         else
-            msg="Password input failed\n\nlightdm-gtk-greeter.conf was not applied"
-            echo "$0: $msg" >&2
+            msg="Password input failed\n\nlightdm-gtk-greeter.conf was not applied\n"
+            echo -e "$0: $msg" >&2
             yad_warning "$msg"
         fi
     done
@@ -2376,7 +2465,7 @@ function restoreFiles(){
         elif [[ -f $src_file ]]; then
             restoreFileAbs "$src_file" "$target_file" || return 1
         else
-            echo "$0: File to restore, $src_file does not exist." >&2
+            echo -e "$0: File to restore, $src_file does not exist.\n" >&2
             return 1
         fi
     done
@@ -2390,10 +2479,10 @@ function copyDir(){
     target_dir="$2"
     if [[ -f $target_dir ]]
     then
-        echo "$0: target directory $target_dir is an ordinary file" >&2
+        echo -e "$0: target directory $target_dir is an ordinary file\n" >&2
         return 1
     fi
-    debug "\n  making directory $target_dir"
+    debug "  making directory $target_dir"
     mkdir -p "$target_dir" || return 1
     for i in "$src_dir"/*
     do
@@ -2416,7 +2505,7 @@ function restoreFileAbs(){
     target_file_canon="$(readlink -f "$target_file")" # canonical path
     [[ -L "$target_file" ]] && debug "$target_file is a symbolic link, pointing to $target_file_canon"
     [[ -w "$target_file" ]] || {
-        echo "$0: Cannot restore $src_file because $target_file is not writable." >&2
+        echo -e "$0: Cannot restore $src_file because $target_file is not writable.\n" >&2
         return 1
     }
     target_dir="${target_file%/*}"
@@ -2431,7 +2520,7 @@ function restoreFileAbs(){
     }
     if [[ -e $target_file ]];then        # backup config first
         diff -qBEbZ "$src_file" "$target_file" >/dev/null && {
-            debug "\n  $target_file and ${src_file}${extra_txt} are identical, no need to restore."
+            debug "  $target_file and ${src_file}${extra_txt} are identical, no need to restore."
             return 0
         }
         needBackup "${target_file}" && {
@@ -2491,12 +2580,10 @@ needBackup(){
 # dconfdir and appname passed as $1 and $2 from restoreSettings()
 # dconfdir is a dconf path, not a file path.
 function restoreDconf(){
-    local dconfdir appname src_file bkpdir bkp_file current_state blob_state
-    dconfdir=$1
-    appname=$2
+    local dconfdir=$1 appname=$2 src_file bkpdir bkp_file current_state blob_state
     src_file="$THEMEPATH/dconf/${appname// /_}"
-    [[ -f $src_file ]] || {
-        echo "$0: cannot find dconf config $src_file for ${appname}" >&2
+    [[ -r $src_file ]] || {
+        echo -e "$0: cannot find readable dconf config $src_file for ${appname}\n" >&2
         return 1
     }
     bkpdir="$HOME/.config/dconf-backups"
@@ -2516,6 +2603,41 @@ function restoreDconf(){
     [[ -n $blob_state ]] && {
         debug "${appname}: restoring dconf settings from $src_file"
         dconf load "$dconfdir" < "$src_file" || return 1
+    }
+}
+
+# THEMEPATH and BKP_SFX are globals set by displayBlobs() and restoreSettings() respectively.
+# xfchan and appname passed as $1 and $2 from restoreSettings()
+# xfchan is an xfconf channel, not a file path.
+restoreXfconf(){
+    local xfchan=$1 appname=$2 src_file bkpdir bkp_file current_state blob_state
+    src_file="$THEMEPATH/xfconf/${appname// /_}"
+    [[ -r $src_file ]] || {
+        echo -e "$0: cannot find readable xfconf config $src_file for ${appname}\n" >&2
+        return 1
+    }
+    bkpdir="$HOME/.config/xfconf-backups"
+    bkp_file="$bkpdir/${appname// /_}${BKP_SFX}"
+    current_state=$( xfconf-query -c "$xfchan" -lv ) || return 1
+    blob_state=$(< "$src_file" )
+    [[ "$current_state" = "$blob_state" ]] && { # including when both are empty, ie default state
+        debug "${appname}: no need to restore xfconf, settings are the same."
+        return 0
+    }
+    [[ -n $current_state ]] && {
+        mkdir -p "$bkpdir" || return 1
+        debug "${appname}: backing up xfconf channel ${xfchan} to $bkp_file"
+        printf '%s\n' "$current_state" > "$bkp_file" || return 1
+    }
+    [[ -n $blob_state ]] && {
+        debug "${appname}: restoring xfconf settings from $src_file"
+        while read -r path value
+        do
+            xfconf-query -c "$xfchan" -p "$path" -s "$value" -n || {
+                echo -e "${0}: ERROR setting xfconf channel ${xfchan} property ${path} to value ${value}\n" >&2
+                return 1
+            }
+        done < "$src_file"
     }
 }
 
@@ -2558,6 +2680,7 @@ function getActiveMonitorDimensions(){
     read -r -a dim < <(bl-xinerama-prop)
     DLGWIDTH=$(( dim[0] / 3 ))
     DLGHEIGHT=$(( dim[1] * 2 / 3 ))
+    # shellcheck disable=SC2015
     [[ $DLGWIDTH =~ ^[0-9]+$ ]] && [[ $DLGHEIGHT =~ ^[0-9]+$ ]] || {
         print 'Error in getActiveMonitorDimensions'
         exit 1
@@ -2594,7 +2717,7 @@ restoreSettings() {
     # get chosen saved configs and restore them
     # Conky and Tint2 will be killed by their restore functions, if called.
     BKP_SFX=".$(date +"%Y%m%d-%H%M%S").blob~" # global: unified backup suffix that restore functions will use
-    local TAG VAL labels label columns select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img
+    local TAG VAL labels label entries select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img
     # img will be inherited by restoreBg and its children
 
     # pass label to be removed from restore dialog list
@@ -2636,6 +2759,9 @@ restoreSettings() {
                                 ;;
             "[TINT2]"       )   labels+=("$PICKTINT")
                                 values["$PICKTINT"]="$VAL"
+                                ;;
+            "[TINT2_LEGACY]")   labels+=("${PICKTINT} (legacy)")
+                                values["${PICKTINT} (legacy)"]="$VAL"
                                 ;;
             "[DMENU]"       )   labels+=("$PICKDMENU")
                                 values["$PICKDMENU"]="$VAL"
@@ -2710,17 +2836,24 @@ restoreSettings() {
     select='TRUE'
     while true
     do
-        columns=()
+        entries=()
         for i in "${labels[@]}"
         do
-            columns+=("$select" "$i")
+            case "$i" in
+            *'(legacy)') # these entries will be unchecked by default
+                entries+=(FALSE "$i")
+                ;;
+            *)
+                entries+=("$select" "$i")
+                ;;
+            esac
         done
         CHOICE=$(yad "${yad_args[@]}" --list --checklist \
             --title="Choose the configs to apply..." \
             --button="Unselect All:2" $CANCEL $OK \
             --height=400 --width=400 \
             --print-column=2 --separator='' \
-            --column="Select" --column="Config" "${columns[@]}" )
+            --column="Select" --column="Config" "${entries[@]}" )
         ret=$?
         if (( ret == 1 )); then # cancel button pressed
             debug " Cancelled restore of $themename"
@@ -2773,6 +2906,8 @@ restoreSettings() {
                                 ;;
             "$PICKTINT"     )   restoreTint2 "$VAL"
                                 ;;
+            "${PICKTINT} (legacy)") restoreTint2 --legacy "$VAL"
+                                ;;
             "$PICKDMENU"    )   restoreFiles "$DMENU"
                                 ;;
             "$PICKLDM"      )   restoreLightdm
@@ -2786,11 +2921,15 @@ restoreSettings() {
                                 jgmenu_sync=false # no need for openbox or gtk theme syncing, theme is provided in $JGMENURC
                                 ;;
             "$PICKCOMP"     )   restoreFiles "$VAL"
+                                # shellcheck disable=SC2015
                                 hash bl-compositor 2>/dev/null && bl-compositor --restart || true # bl-compositor is in bunsen-pipemenus
                                 ;;
             *               )   if [[ $VAL = '%dconf%'* ]] # dconf directories come prefixed with %dconf% in checkTerm (and others in future?)
                                 then
                                     restoreDconf "${VAL#'%dconf%'}" "$label"
+                                elif [[ $VAL = '%xfconf%'* ]]
+                                then
+                                    restoreXfconf "${VAL#'%xfconf%'}" "$label"
                                 else
                                     restoreFiles "$VAL"
                                 fi
@@ -2863,7 +3002,7 @@ function sameFiles() {
     for dir in "$smalldir" "$bigdir"
     do
         [[ -d $dir ]] || {
-            echo "$0: ${dir} is not a directory." >&2
+            echo -e "$0: ${dir} is not a directory.\n" >&2
             return 1
         }
     done
@@ -2928,7 +3067,7 @@ differ () {
         [[ -n $title ]] || title="Diff of $firstfile and $secondfile"
         termname=$( readlink -f "$( which x-terminal-emulator )" )
         termname=${termname##*/}
-        badterm_msg="$0: cannot display file diff with new window ${termname}."
+        badterm_msg="$0: cannot display file diff with new window ${termname}."$'\n'
         case $termname # cope with terminal inconsistencies
         in
             lxterminal)
@@ -2960,11 +3099,11 @@ function displayBlobs(){
     local DLGWIDTH DLGHEIGHT DLGARR RET CONFIG CURRENTSESSDIR themename SYSDIRTXT TEXT difflist userfile img
     getActiveMonitorDimensions
     while true ;do
-        UpdateDisplayDialog # generates DLGARR aand CURRENTSESSDIR
+        UpdateDisplayDialog # generates DLGARR and CURRENTSESSDIR
         CONFIG=$(yad "${yad_args[@]}" --list --title="$TITLE" \
             --text="Double-click the highlighted selection, or use \"Enter\" key, or the \"Apply Selected Blob\" button to apply selected themeset to your desktop.\n" \
             --separator=" " \
-            --button="_Save Current Themes:3" --button="_View Selected Blob:4" \
+            --button="_Save New Blob:3" --button="_View Selected Blob:4" \
             --button="_Apply Selected Blob:0" --button="_Delete Selected Blob:2" \
             $HLPBTN --button="gtk-quit:1" \
             --always-print-result \
@@ -2986,13 +3125,13 @@ function displayBlobs(){
             then
                 THEMEPATH="$SYSCONFIGPATH/$themename"
             else
-                msg="cannot find BLOB theme $themename"
+                msg="cannot find BLOB theme $themename"$'\n'
                 echo "$0: $msg" >&2
                 yad_fatal_error "$msg"
                 exit 1
             fi
         else
-            msg="function displayBlobs returned strange value $CONFIG"
+            msg="function displayBlobs returned strange value $CONFIG"$'\n'
             echo "$0: $msg" >&2
             exit 1
         fi
@@ -3078,7 +3217,7 @@ Do you want to save your current session before applying <b>${themename}</b>?"
                     elif [[ -r "${THEMEPATH%/*}/${themename}.jpg" ]]; then
                         img="${THEMEPATH%/*}/${themename}.jpg"
                     else
-                        echo "$0: No screenshot ${themename}.jpg found" >&2
+                        echo -e "$0: No screenshot ${themename}.jpg found\n" >&2
                         continue
                     fi
                     $IMGCMD "$img"
