@@ -2283,7 +2283,7 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
     debug "\n  Restored Conky\n"
 }
 
-restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (may be "none")
+restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (usually empty but may be "none")
     local xfpdir xfpfile missing_commands=() i=''
 
     [[ $1 = 'none' ]] && {
@@ -2353,7 +2353,13 @@ to use xfce4-panel settings."
 function restoreTint2(){    # [ --legacy ] $VAL from restoreSettings()
     local msg tintcmds user_tintsession saved_tintsession
 
-    [[ $1 = --legacy ]] && {
+    hash 'tint2' || {
+        debug 'tint2 is not installed, not restoring tint2 panel settings'
+        yad_warning 'Please install the tint2 package to restore tint2 panel settings.'
+        return 1
+    }
+
+    [[ $1 = --legacy ]] && { # this option means similar tint2 and xfce4-panel settings have  been provided
         hash 'xfce4-panel' && {
             debug 'xfce4-panel is installed'
             msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
@@ -2362,18 +2368,21 @@ If you restore tint2, xfce4-panel will not be used \nand any running instances o
                 msg+='\nIf you abort restoring tint2, xfce4-panel will be used instead.'
             }
             yad_warning "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
-                debug 'Aborted restoring tint2 settings'
-                return 0
+                debug 'Aborted restoring tint2 settings \n restoring xfce4-panel instead.'
+                restoreXfce4Panel && return 0 || return 1
             }
             pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
+            msg='If you want tint2 to be used the next time you login
+you will need to edit ~/.config/bunsen/autostart
+
+Uncomment this line:
+( sleep 2; bl-tint2-session ) &amp;
+and comment out this line to prevent xfce4-panel from starting:
+xfce4-panel &amp;
+'
+            yad_prompt "$msg" "$OK"
         }
         shift
-    }
-
-    hash 'tint2' || {
-        debug 'tint2 is not installed, not restoring tint2 panel settings'
-        yad_warning 'Please install the tint2 package to restore tint2 panel settings.'
-        return 1
     }
 
     tintcmds="${1//;/$'\n'}"
