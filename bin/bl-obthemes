@@ -171,7 +171,7 @@ CURSESSFILE="$USRCONFIGPATH/current"
 ### USER CONFIG VARIABLES TO BE SAVED AND RESTORED
 OBPATH="$HOME/.config/bunsen/openbox" # used from BL Carbon
 STDOBPATH="$HOME/.config/openbox" # used by vanilla (not BL) openbox sessions
-RCFILE="$OBPATH/rc-xml" # used from BL Carbon
+RCFILE="$OBPATH/rc.xml" # used from BL Carbon
 OLDRCFILE="$STDOBPATH/bl-rc.xml" # up to Boron, used the BunsenLabs file name
 #STDRCFILE="$STDOBPATH/rc.xml" # if it exists, used by vanilla (not BL) openbox sessions (and ignored by this script)
 GTK2=".gtkrc-2.0"
