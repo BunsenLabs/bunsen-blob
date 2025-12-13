@@ -2077,7 +2077,6 @@ function parseFehfile(){ # get first image set in a feh file
     # get fields between single quotes
     while read -r line;do
         [[ -r $line ]] || {
-            debug "$line is not a readable file, skipping"
             continue
         }
         printf '%s' "${line}"
@@ -2412,7 +2411,7 @@ xfce4-panel &amp;
         debug "No saved tintsession file found, using filepaths in settings.cfg"
         if [[ $tintcmds = 'none' ]]
         then
-            debug "No saved tint2s - generating empty tint2 sessionfile."
+            debug "No saved tint2s - generating empty tint2 sessionfile." # bl-tint2-session needs to handle this properly
             :> "$saved_tintsession"
         else
             echo "$tintcmds" > "$saved_tintsession"
@@ -2425,14 +2424,18 @@ xfce4-panel &amp;
         echo -e "$0: failed to apply user/.config/tint2 directory in ${THEMEPATH}\n" >&2
         return 1
     }
-    if hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
+    if [[ -s $user_tintsession ]] && hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
     then
         bl-tint2-session "$user_tintsession" || {
             echo -e "$0: failed to start tint2 session $user_tintsession with bl-tint2-session\n" >&2
             return 1
         }
+        debug "\n Restored Tint2\n"
+    else
+        debug "not launching bl-tint2-session with empty tint session file $user_tintsession \n any running tint2s will be stopped"
+        safeKill tint2
+        debug "\n Restored Tint2 settings\n"
     fi
-    debug "\n Restored Tint2\n"
 }
 
 # THEMEPATH and BKP_SFX are globals,
@@ -2941,7 +2944,7 @@ restoreSettings() {
                                 ;;
             "$PICKCOMP"     )   restoreFiles "$VAL"
                                 # shellcheck disable=SC2015
-                                hash bl-compositor 2>/dev/null && bl-compositor --restart || true # bl-compositor is in bunsen-pipemenus
+                                hash bl-compositor 2>/dev/null && bl-compositor --start || true # bl-compositor is in bunsen-pipemenus
                                 ;;
             *               )   if [[ $VAL = '%dconf%'* ]] # dconf directories come prefixed with %dconf% in checkTerm (and others in future?)
                                 then
