@@ -2158,7 +2158,7 @@ function restoreFeh(){
     [[ $need_edit = true ]] && {
         debug "Replacing $fehimg with $fixed_img in ${HOME}/${FEHFILE}..."
         sed -i "s/${fehimg//'/'/'\/'}/${fixed_img//'/'/'\/'}/" "${HOME}/${FEHFILE}" || { echo -e "$0: failed to edit ${FEHFILE}\n" >&2; return 1; }
-        [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo -e "$0: failed to edit ${NITROFILE}\n" >&2; return 1; }
+        [[ $( parseFehfile "${HOME}/${FEHFILE}" ) = "${fixed_img}" ]] || { echo -e "$0: failed to edit ${FEHFILE}\n" >&2; return 1; }
     }
     # shellcheck source=/dev/null
     source "$HOME/$FEHFILE"
@@ -2369,10 +2369,9 @@ function restoreTint2(){    # [ --legacy ] $VAL from restoreSettings()
         hash 'xfce4-panel' && {
             debug 'xfce4-panel is installed'
             msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
-If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.'
-            hash xfce4-panel && {
-                msg+='\nIf you abort restoring tint2, xfce4-panel will be used instead.'
-            }
+If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.
+If you abort restoring tint2, xfce4-panel will be used instead.
+'
             yad_question "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
                 debug 'Aborted restoring tint2 settings \n restoring xfce4-panel instead.'
                 restoreXfce4Panel && return 0 || return 1
