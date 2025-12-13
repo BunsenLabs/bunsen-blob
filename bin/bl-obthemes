@@ -2076,7 +2076,12 @@ function parseNitrofile(){ # get first image set in a nitrogen file
 function parseFehfile(){ # get first image set in a feh file
     # get fields between single quotes
     while read -r line;do
+        [[ -r $line ]] || {
+            debug "$line is not a readable file, skipping"
+            continue
+        }
         printf '%s' "${line}"
+        return 0
     done < <(grep -o "'[^']*'" "$1" | sed "s/'//g" 2>/dev/null)
 }
 
