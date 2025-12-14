@@ -1999,7 +1999,7 @@ function restoreOBrc(){
 function checkWallpaper(){
     fixed_img='' # will be inherited by background restoring functions
     [[ -n $1 ]] || { debug "No image path sent to checkWallpaper()"; return 1; }
-    local imgpath="$1" imgname found_imgpath pkg
+    local imgpath="$1" imgname found_imgpath pkgs pkg
     [[ -r "$imgpath" ]] && {
         debug "Found wallpaper $imgpath"
         return 0
@@ -2010,16 +2010,19 @@ function checkWallpaper(){
     [[ -n $found_imgpath ]] && {
         found_imgpath=$( readlink -f "$found_imgpath" )
         debug "Found $imgname at $found_imgpath"
-        fixed_img=$found_imgpath # img is inherited by restoreBg(), inside restoreSettings()
+        fixed_img=$found_imgpath # fixed_img is inherited by restoreBg(), inside restoreSettings()
         return 2
     }
     debug "Unable to find $imgname in the expected places, checking all installed packages..."
-    found_imgpath=$(dpkg-query --search "*/${imgname}" 2>/dev/null) && {
-        pkg=${found_imgpath%%: *}
-        found_imgpath=${found_imgpath#"${pkg}": }
-        debug "Package $pkg includes $imgname at $found_imgpath"
-        fixed_img=$found_imgpath
-        return 2
+    pkgs=$(dpkg-query --search "*/${imgname}" 2>/dev/null) && { # there may be multiple packages
+        while read -r line
+        do
+            pkg=${line%%: *}
+            found_imgpath=${line#"${pkg}": }
+            debug "Package $pkg includes $imgname at $found_imgpath"
+            fixed_img=$found_imgpath
+            return 2 # take only the first package in the list
+        done <<< "$pkgs"
     }
     debug "No installed package includes $imgname"
     pkg="${wallpaper_pkgs[$imgname]}"
@@ -2850,7 +2853,7 @@ restoreSettings() {
         fi
     else
         debug "not using a background setting daemon"
-        debug "can restore background ${img:+$img }with $orig_bgsetter"
+        debug "will attempt to restore background ${img:+$img }with $orig_bgsetter"
         case "$orig_bgsetter" in
         NITROGEN)
             hash nitrogen || {
