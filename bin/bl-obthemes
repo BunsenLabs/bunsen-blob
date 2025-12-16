@@ -271,7 +271,6 @@ declare -A icon_pkgs=(
 [Adwaita]='adwaita-icon-theme'
 )
 
-# TODO: UPDATE THIS
 # packages needed for particular BL wallpapers
 declare -A wallpaper_pkgs=(
 [tile.png]='bunsen-images-base'
@@ -298,6 +297,7 @@ declare -A wallpaper_pkgs=(
 [Ruby-flame-1920x1080.png]='bunsen-images'
 [Ruby-plain-1920x1080.png]='bunsen-images'
 [svalbard_kols.png]='bunsen-images'
+[mirage_hhh_1920_1200.png]='bunsen-images'
 [Yeti.jpg]='bunsen-images'
 [Beryllium-1920x1080.jpg]='bunsen-images-archives'
 [BL-beam.png]='bunsen-images-archives'
