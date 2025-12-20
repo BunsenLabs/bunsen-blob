@@ -2028,7 +2028,7 @@ function checkWallpaper(){
     pkg="${wallpaper_pkgs[$imgname]}"
     if [[ -n "${pkg}" ]] && hash bl-install >/dev/null
     then
-        debug "\n  Wallpaper $imgname was not found\n  Offering to install $pkg..."
+        debug "\n  Wallpaper $imgname was not found on this computer.\n  Offering to install $pkg which should hold that file."
         local yad_wallpaper_q="Needed wallpaper <b>$imgname</b> not found\n Would you like to install the package <b>${pkg}</b> which contains that wallpaper?\n If you don't want to install the package you can continue with the current wallpaper, or exit now."
         yad_question "${yad_wallpaper_q}" --button='Install package':0 --button='Continue with current wallpaper':2 --button='Exit':1
         case $? in
@@ -2098,20 +2098,30 @@ function parseFehfile(){ # get first image set in a feh file
 }
 
 function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited from restoreSettings()
+    local failed=false
     case $1 in
     NITROGEN)
-        restoreNitrogen || { echo -e "$0: failed to apply wallpaper with nitrogen\n" >&2; return 1; }
+        restoreNitrogen || { echo -e "$0: failed to apply wallpaper with nitrogen\n" >&2; failed=true; }
         ;;
     FEH)
-        restoreFeh || { echo -e "$0: failed to apply wallpaper with feh\n" >&2; return 1; }
+        restoreFeh || { echo -e "$0: failed to apply wallpaper with feh\n" >&2; failed=true; }
         ;;
     XFDESKTOP)
-        restoreXfdesktop || { echo -e "$0: failed to apply wallpaper with xfdesktop\n" >&2; return 1; }
+        restoreXfdesktop || { echo -e "$0: failed to apply wallpaper with xfdesktop\n" >&2; failed=true; }
         ;;
     PCMANFM)
-        restorePcmanfm || { echo -e "$0: failed to apply wallpaper with pcmanfm\n" >&2; return 1; }
+        restorePcmanfm || { echo -e "$0: failed to apply wallpaper with pcmanfm\n" >&2; failed=true; }
         ;;
     esac
+    [[ $failed = true ]] && {
+        if yad_warning_option "Failed to find the wallpaper ${img} used in this Blob."
+        then
+            debug "Continuing without wallpaper $img"
+            return 0
+        else
+            exit 1
+        fi
+    } || return 0
 }
 
 function restoreNitrogen(){
@@ -2379,39 +2389,61 @@ to use xfce4-panel settings."
 #    done < "$1"
 #}
 
-function restoreTint2(){    # [ --legacy ] $VAL from restoreSettings()
+function restoreTint2(){    # $VAL from restoreSettings()
     local msg tintcmds user_tintsession saved_tintsession
 
+    [[ $1 = 'none' ]] && {
+        debug 'No tint2 was running in this saved session.
+Any running tint2s will now be stopped'
+        safeKill tint2
+        return 0
+    }
+
     hash 'tint2' || {
-        debug 'tint2 is not installed, not restoring tint2 panel settings'
-        yad_warning 'Please install the tint2 package to restore tint2 panel settings.'
-        return 1
-    }
-
-    [[ $1 = --legacy ]] && { # this option means similar tint2 and xfce4-panel settings have  been provided
-        hash 'xfce4-panel' && {
-            debug 'xfce4-panel is installed'
-            msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
-If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.
-If you abort restoring tint2, xfce4-panel will be used instead.
-'
-            yad_question "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
-                debug 'Aborted restoring tint2 settings \n restoring xfce4-panel instead.'
-                restoreXfce4Panel && return 0 || return 1
-            }
-            pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
-            msg='If you want tint2 to be used the next time you login
-you will need to edit ~/.config/bunsen/autostart
-
-Uncomment this line:
-( sleep 2; bl-tint2-session ) &amp;
-and comment out this line to prevent xfce4-panel from starting:
-xfce4-panel &amp;
-'
-            yad_prompt "$msg" "$OK"
+        hash bl-install >/dev/null || {
+            debug 'tint2 is not installed but cannot find bl-install to install it'
+            return 1
         }
-        shift
+        debug 'tint2 is not installed, offering to install it...'
+        if yad_question 'Tint2 is needed for this BLOB.\n Would you like to install it now?'
+        then
+            local retfile retval
+            retfile="$( mktemp )"
+            bl-install -f "$retfile" 'tint2'
+            retval="$(<"$retfile")"
+            rm "$retfile"
+            [[ "$retval" = 0 ]] || {
+                yad_warning "tint2 install failed."
+                return 1
+            }
+        fi
+        debug 'installed tint2'
     }
+
+#    [[ $1 = --legacy ]] && { # this option means similar tint2 and xfce4-panel settings have  been provided
+#        hash 'xfce4-panel' && {
+#            debug 'xfce4-panel is installed'
+#            msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
+#If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.
+#If you abort restoring tint2, xfce4-panel will be used instead.
+#'
+#            yad_question "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
+#                debug 'Aborted restoring tint2 settings \n restoring xfce4-panel instead.'
+#                restoreXfce4Panel && return 0 || return 1
+#            }
+#            pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
+#            msg='If you want tint2 to be used the next time you login
+#you will need to edit ~/.config/bunsen/autostart
+
+#Uncomment this line:
+#( sleep 2; bl-tint2-session ) &amp;
+#and comment out this line to prevent xfce4-panel from starting:
+#xfce4-panel &amp;
+#'
+#            yad_prompt "$msg" "$OK"
+#        }
+#        shift
+#    }
 
     tintcmds="${1//;/$'\n'}"
     user_tintsession="$HOME/$TINTSESSION"
@@ -2424,17 +2456,11 @@ xfce4-panel &amp;
     }
     if [[ -f "$saved_tintsession" ]]
     then
-        debug "Restoring tint2 sessionfile."
+        debug 'Restoring tint2 sessionfile.'
     elif [[ -n $tintcmds ]]
     then
-        debug "No saved tintsession file found, using filepaths in settings.cfg"
-        if [[ $tintcmds = 'none' ]]
-        then
-            debug "No saved tint2s - generating empty tint2 sessionfile." # bl-tint2-session needs to handle this properly
-            :> "$saved_tintsession"
-        else
-            echo "$tintcmds" > "$saved_tintsession"
-        fi
+        debug 'No saved tintsession file found, using filepaths in settings.cfg'
+        echo "$tintcmds" > "$saved_tintsession"
     else
         echo -e "$0: cannot restore tint2, there is no session information.\n" >&2
         return 1
@@ -2443,17 +2469,16 @@ xfce4-panel &amp;
         echo -e "$0: failed to apply user/.config/tint2 directory in ${THEMEPATH}\n" >&2
         return 1
     }
-    if [[ -s $user_tintsession ]] && hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
+    if hash bl-tint2-session # bl-tint2-session comes in bunsen-utilities, which bunsen-blob depends on
     then
         bl-tint2-session "$user_tintsession" || {
-            echo -e "$0: failed to start tint2 session $user_tintsession with bl-tint2-session\n" >&2
+            echo -e "${0}: failed to start tint2 session $user_tintsession with bl-tint2-session\n" >&2
             return 1
         }
-        debug "\n Restored Tint2\n"
+        debug '\n Restored Tint2\n'
     else
-        debug "not launching bl-tint2-session with empty tint2 session file $user_tintsession \n any running tint2s will be stopped"
-        safeKill tint2
-        debug "\n Restored empty Tint2 settings\n"
+        echo -e "${0}: cannot find bl-tint2-session to start new tint2 session\n" >&2
+        return 1
     fi
 }
 
@@ -2758,7 +2783,7 @@ restoreSettings() {
     # get chosen saved configs and restore them
     # Conky and Tint2 will be killed by their restore functions, if called.
     BKP_SFX=".$(date +"%Y%m%d-%H%M%S").blob~" # global: unified backup suffix that restore functions will use
-    local TAG VAL labels label entries select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img
+    local TAG VAL labels label entries select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img killxfpanel killtints
     # img will be inherited by restoreBg and its children
 
     # pass label to be removed from restore dialog list
@@ -2800,9 +2825,6 @@ restoreSettings() {
                                 ;;
             "[TINT2]"       )   labels+=("$PICKTINT")
                                 values["$PICKTINT"]="$VAL"
-                                ;;
-            "[TINT2_LEGACY]")   labels+=("${PICKTINT} (legacy)")
-                                values["${PICKTINT} (legacy)"]="$VAL"
                                 ;;
             "[DMENU]"       )   labels+=("$PICKDMENU")
                                 values["$PICKDMENU"]="$VAL"
@@ -2874,6 +2896,22 @@ restoreSettings() {
         esac
     fi
 
+    # If xfce4-panel or tint2 are set to "none" in settings.cfg, or not set at all,
+    # then do not offer that choice to restore, but just kill the process if it is running.
+    # Put up a warning popup before killing.
+    if [[ ${values["$PICKXFPANEL"]} = "none" ]] || [[ ! -v 'values[$PICKXFPANEL]' ]]
+    then
+        debug 'xfce4-panel is not used in this Blob\n if user restores session, any running instances will be killed'
+        unset_label "$PICKXFPANEL" || debug "($PICKXFPANEL was not set in settings.cfg)"
+        killxfpanel=true
+    fi
+    if [[ ${values["$PICKTINT"]} = "none" ]] || [[ ! -v 'values[$PICKTINT]' ]]
+    then
+        debug 'tint2 is not used in this Blob\n if user restores session, any running instances will be killed'
+        unset_label "$PICKTINT" || debug "($PICKTINT was not set in settings.cfg)"
+        killtints=true
+    fi
+
     select='TRUE'
     while true
     do
@@ -2881,7 +2919,8 @@ restoreSettings() {
         for i in "${labels[@]}"
         do
             case "$i" in
-            *'(legacy)') # these entries will be unchecked by default
+            *'(option)') # these entries will be unchecked by default
+                debug "$i entry will be unchecked in dialog"
                 entries+=(FALSE "$i")
                 ;;
             *)
@@ -2925,7 +2964,7 @@ restoreSettings() {
     restore_gtk=false
     restore_icons=false
     # Go through user's selected choices.
-    while read -r label
+    while read -r -u "$fd" label
     do
         VAL="${values[$label]}"
         VAL="${VAL//$HOME_MARKER/$HOME}" # HOME_MARKER is global
@@ -2946,8 +2985,6 @@ restoreSettings() {
             "$PICKXFPANEL"  )   restoreXfce4Panel "$VAL"
                                 ;;
             "$PICKTINT"     )   restoreTint2 "$VAL"
-                                ;;
-            "${PICKTINT} (legacy)") restoreTint2 --legacy "$VAL"
                                 ;;
             "$PICKDMENU"    )   restoreFiles "$DMENU"
                                 ;;
@@ -2976,7 +3013,13 @@ restoreSettings() {
                                 fi
                                 ;;
         esac
-    done <<< "$CHOICE"
+    done {fd}<<EOF
+$CHOICE
+EOF
+    exec {fd}<&-
+
+    [[ $killxfpanel = true ]] && restoreXfce4Panel none
+    [[ $killtints = true ]] && restoreTint2 none
 
     if [[ $restore_gtk != 'false' ]]; then # restoring GTK theme
         jgmenu_sync_gtk=true
