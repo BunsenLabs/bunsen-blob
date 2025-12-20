@@ -2964,7 +2964,7 @@ restoreSettings() {
     restore_gtk=false
     restore_icons=false
     # Go through user's selected choices.
-    while read -r -u "$fd" label
+    while read -r -u "$fd" label # read from a custom file descriptor so any terminal launched by child process still has access to stdin
     do
         VAL="${values[$label]}"
         VAL="${VAL//$HOME_MARKER/$HOME}" # HOME_MARKER is global
