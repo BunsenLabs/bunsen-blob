@@ -747,7 +747,7 @@ function setName(){  # set name of collection, make dir and session settings fil
     debug "\n  Configuration will be saved as: $NEWNAME$txt"
 
 #     store list in listfile
-    echo -e "<b>Configuration name: $NEWNAME</b>\t$txt\nSaved at $time\n" >> "$LISTMSG"
+    echo -e "<b>Configuration name: $NEWNAME</b>\t$txt\nSaved on $time\n" >> "$LISTMSG"
 }
 
 # $1 [$2...] are relative paths passed from save functions
