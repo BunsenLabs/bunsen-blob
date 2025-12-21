@@ -2776,6 +2776,27 @@ function checkBgDaemon(){
     return 1
 }
 
+# old picom.conf will make picom crash
+checkPicomConf(){ # pass path to picom.conf to be tested
+    local compfile=$1 RET=1 PID
+    debug "checking picom config file $compfile"
+    [[ -r $compfile ]] || { echo "${0}: Cannot read $compfile" >&2; return 1;}
+    hash bl-compositor || { debug "not testing $compfile - bl-compositor is not available"; return 0;} # just allow picom launch to fail if config file is too old
+    bl-compositor --stop >/dev/null # suppress "no tint2 processes running" message from bl-restart
+    picom --config "$compfile" >/dev/null 2>&1 & PID=$!
+    sleep 2
+    kill "$PID" 2>/dev/null && RET=0
+    bl-compositor --start >/dev/null
+    if [[ $RET = 0 ]]
+    then
+        debug "$compfile OK"
+    else
+        debug "picom cannot use $compfile"
+    fi
+    return "$RET" 
+}
+
+
 # This function is run in displayBlobs() below
 # global THEMEPATH is set there
 # themename is local to displayBlobs()
@@ -2783,7 +2804,7 @@ restoreSettings() {
     # get chosen saved configs and restore them
     # Conky and Tint2 will be killed by their restore functions, if called.
     BKP_SFX=".$(date +"%Y%m%d-%H%M%S").blob~" # global: unified backup suffix that restore functions will use
-    local TAG VAL labels label entries select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img killxfpanel killtints
+    local TAG VAL labels label entries select ret CHOICE jgmenu_sync jgmenu_sync_ob jgmenu_sync_gtk bgsetter orig_bgsetter img killxfpanel killtints compfile
     # img will be inherited by restoreBg and its children
 
     # pass label to be removed from restore dialog list
@@ -2911,6 +2932,15 @@ restoreSettings() {
         unset_label "$PICKTINT" || debug "($PICKTINT was not set in settings.cfg)"
         killtints=true
     fi
+
+    # Do not offer to restore picom settings with old picom.conf
+    compfile=${values["$PICKCOMP"]}
+    [[ ${compfile##*/} = picom.conf ]] && {
+        checkPicomConf "$THEMEPATH/user/$compfile" || {
+            yad_warning "Picom cannot use $compfile from this BLOB\ncomposition settings will not be restored"
+            unset_label "$PICKCOMP"
+        }
+    }
 
     select='TRUE'
     while true
