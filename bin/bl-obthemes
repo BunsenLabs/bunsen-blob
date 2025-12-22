@@ -2338,10 +2338,15 @@ Any running xfce4-panel will now be stopped'
     done
     [[ ${missing_commands[0]} ]] && {
         debug "missing: ${missing_commands[*]}, not restoring xfce4-panel"
-        yad_warning "Please install:
+        if yad_warning_option "Please install:
     ${missing_commands[*]}
 to use xfce4-panel settings."
-        return 1
+        then
+            debug 'Continuing without xfce4-panel settings'
+            return 0
+        else
+            exit 1
+        fi
     }
 
     debug "restoring xfce4-panel settings"
@@ -2401,7 +2406,7 @@ Any running tint2s will now be stopped'
 
     hash 'tint2' || {
         hash bl-install >/dev/null || {
-            debug 'tint2 is not installed but cannot find bl-install to install it'
+            debug 'tint2 is not installed but cannot find bl-install to install it' # bunsen-blob depends on bunsen-common which provides bl-install
             return 1
         }
         debug 'tint2 is not installed, offering to install it...'
@@ -2507,7 +2512,12 @@ function restoreLightdm(){   # need sudo to restore lightdm-gtk-greeter.conf
         then
             msg="Authentication cancelled\n\nlightdm-gtk-greeter.conf was not applied\n"
             echo -e "$0: $msg" >&2
-            return 1
+            if yad_warning_option "$msg"
+            then
+                return 0
+            else
+                exit 1
+            fi
         else
             msg="Password input failed\n\nlightdm-gtk-greeter.conf was not applied\n"
             echo -e "$0: $msg" >&2
