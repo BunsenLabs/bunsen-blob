@@ -3287,10 +3287,10 @@ Do you want to save your current session before applying <b>${themename}</b>?"
                         esac
                     done
                 }
-#                SAVED="$THEMEPATH/LISTMSG.txt"
-#                TEXT="These configs saved as $CONFIG can be restored:\n\n"
-#                TEXT="$TEXT$(< "$SAVED")"
-#                yad_prompt "$TEXT" || continue
+                SAVED="$THEMEPATH/LISTMSG.txt"
+                TEXT="<big><b><u>These configs saved as $CONFIG can be restored:</u></b></big>\n\n"
+                TEXT="$TEXT$(< "$SAVED")"
+                yad_prompt "$TEXT" || continue
                 debug "\n Restoring BLOB theme $themename"
                 restoreSettings
                 ;;
