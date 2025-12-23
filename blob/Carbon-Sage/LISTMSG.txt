@@ -7,7 +7,7 @@ GTK theme:  bunsen-yaru-sage-dark
 Icon Theme: labbe-icons-sage
 
 Background set with feh:
-	/home/john/Pictures/wallpapers/bunsen/default/sage-logo_1440x900.png
+	/usr/share/images/bunsen/wallpapers/default/sage-logo_1440x900.png
 	
 
 Running Conkys:	

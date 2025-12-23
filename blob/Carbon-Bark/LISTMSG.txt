@@ -7,7 +7,7 @@ GTK theme:  bunsen-yaru-bark-dark
 Icon Theme: labbe-icons-bark
 
 Background set with feh:
-	/home/john/Pictures/wallpapers/bunsen/default/bark-logo_1440x900.png
+	/usr/share/images/bunsen/wallpapers/default/bark-logo_1440x900.png
 	
 
 Running Conkys:	
