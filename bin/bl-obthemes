@@ -152,7 +152,7 @@ done
 
 ### required commands ###
 declare -a APPS
-APPS=( "yad" "xdotool" "dconf" "xfconf-query" "xmlstarlet" "xrandr" "lxappearance" "jgmenu_run" "scrot" )
+APPS=( "yad" "xdotool" "dconf" "xfconf-query" "xmlstarlet" "xrandr" "nwg-look" "jgmenu_run" "scrot" )
 
 ######################### VARIABLES ####################################
 # ( with some exceptions, GLOBAL variable names are uppercase, local in functions are lowercase )
@@ -842,38 +842,74 @@ saveXfconf(){ # passed xfconf channel as $1 and name of app as $2 (usually the s
 
 # prints newest of files in "$@", returns 1 if no file is passed
 # used in getBg
-function newest()  {
-    [[ -n $1 ]] || return 1
-    local i candidate
-    for i in "$@"
-    do
-        [[ -f $i ]] || continue
-        if [[ -n $candidate ]]
-        then
-            [[ $i -nt $candidate ]] && candidate="$i"
-        else
-            candidate="$i"
-        fi
-    done
-    [[ -n $candidate ]] || return 1
-    printf '%s' "$candidate"
-}
+#function newest()  {
+#    [[ -n $1 ]] || return 1
+#    local i candidate
+#    for i in "$@"
+#    do
+#        [[ -f $i ]] || continue
+#        if [[ -n $candidate ]]
+#        then
+#            [[ $i -nt $candidate ]] && candidate="$i"
+#        else
+#            candidate="$i"
+#        fi
+#    done
+#    [[ -n $candidate ]] || return 1
+#    printf '%s' "$candidate"
+#}
 
 function getBg(){    # Find if feh, nitrogen or other was used. Save config file(s) if possible.
-    local bgsetter='' bgsetterfile img # img is set by the child get* functions
+    local bgsetter='' mtime_feh mtime_nitro timewindow diff abs_diff fehbg nitrobg feh_nitro_msg img # img is set by the child get* functions
+    debug "  Getting the wallpaper settings\n"
 
     bgsetter=$(checkBgDaemon) || debug "no background setting daemons running"
 
     [[ -z $bgsetter ]] && {
-        if bgsetterfile="$( newest "$HOME/$NITROFILE" "$HOME/$FEHFILE" )"; then
-            case $bgsetterfile in
-            "$HOME/$NITROFILE")
-                bgsetter=NITROGEN
-                ;;
-            "$HOME/$FEHFILE")
-                bgsetter=FEH
-                ;;
-            esac
+        mtime_feh=$( stat -c %Y "$HOME/$FEHFILE" 2>/dev/null ) || debug "no feh file found"
+        mtime_nitro=$( stat -c %Y "$HOME/$NITROFILE" 2>/dev/null ) || debug "no nitrogen file found"
+        if [[ -n $mtime_feh && -n $mtime_nitro ]]
+        then
+            debug "both feh and nitrogen have wallpaper settings"
+            timewindow=$((24*60*60)) # 1 day in seconds
+            diff=$(( mtime_feh - mtime_nitro ))
+            abs_diff=${diff#-}
+            if (( abs_diff > timewindow ))
+            then
+                if (( diff > 0 ))
+                then
+                    debug "feh file is more than 1 day newer than nitrogen"
+                    bgsetter=FEH
+                else
+                    debug "nitrogen file ismore than 1 day newer than feh"
+                    bgsetter=NITROGEN
+                fi
+            else
+                fehbg=$(parseFehfile "$HOME/$FEHFILE")
+                nitrobg=$(parseNitrofile "$HOME/$NITROFILE")
+                feh_nitro_msg="Both Feh and Nitrogen have recent wallpaper settings.\nFeh sets ${fehbg}\nNitrogen sets ${nitrobg}\nWhich would you like to save?"
+                yad_question "$feh_nitro_msg" --button='Save Feh settings':0 --button='Save Nitrogen settings':2 --button='Skip saving wallpaper':3 # --button='Exit':1
+                case $? in
+                0)
+                    bgsetter=FEH
+                    ;;
+                2)
+                    bgsetter=NITROGEN
+                    ;;
+                3)
+                    bgsetter=None
+                    ;;
+                1)
+                    exit 0 # this button is disabled - LISTMSG display offers chance to exit
+                    ;;
+                esac
+            fi
+        elif [[ -n $mtime_feh ]]
+        then
+            bgsetter=FEH
+        elif [[ -n $mtime_nitro ]]
+        then
+            bgsetter=NITROGEN
         else
             echo -e "$0:  No nitrogen or feh files found\n" >&2
             bgsetter="None"
@@ -918,6 +954,7 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
 
 # NITROFILE is config global
 # CONFIGDIR is global set by setName()
+# img is set here, local to getBg()
 function getNitrogen(){  # get Nitrogen saved backgrounds
     local nfile="$CONFIGDIR/user/$NITROFILE" imgfile imglist
     debug "Getting wallpaper set by Nitrogen"
@@ -941,6 +978,7 @@ function getNitrogen(){  # get Nitrogen saved backgrounds
 
 # FEHFILE is config global
 # CONFIGDIR is global set by setName()
+# img is set here, local to getBg()
 function getFeh(){    # get Feh saved backgrounds
     local ffile="$CONFIGDIR/user/$FEHFILE" imglist
     debug "Getting wallpaper saved by Feh"
@@ -1470,7 +1508,7 @@ function getJgmenu(){
 
 function getScrot(){
     debug "\n Preparing to take screenshot..."
-    local conkyFLAG tint2FLAG currDesktop scrot mons hiddenWins
+    local conkyFLAG tint2FLAG currDesktop scrot mons screenW screenH appX menuX appY menuY hiddenWins
     conkyFLAG=1
     tint2FLAG=1
     grep -q "CONKY" "$SETTINGS" || {
@@ -1518,13 +1556,13 @@ function getScrot(){
         xdotool windowminimize "$w"
     done
 
-    # start lxappearance
-    lxappearance 2>/dev/null &
+    # start nwg-look (was lxappearance)
+    nwg-look 2>/dev/null &
     sleep 0.5
-    # get lx window, make sure it loses focus, then move mouse and start root-menu
-    LX=$(xdotool getwindowfocus)
-    xdotool windowmove --sync "$LX" "$appX" "$appY" && sleep 0.3 && \
-    xdotool mousemove --sync --window "$LX" -- -50 0 && xdotool click 1
+    # get nl window, make sure it loses focus, then move mouse and start root-menu
+    NL=$(xdotool getwindowfocus)
+    xdotool windowmove --sync "$NL" "$appX" "$appY" && sleep 0.3 && \
+    xdotool mousemove --sync --window "$NL" -- -50 0 && xdotool click 1
     sleep 0.3
     xdotool mousemove --sync "$menuX" "$menuY"
     sleep 0.1
@@ -1564,8 +1602,8 @@ function getScrot(){
     # close root menu
     xdotool mousemove_relative --sync --polar 0 10 "${MOUSECMD[@]}"
     sleep 0.5
-    # kill lxappearance
-    pkill -P "$$" lxappearance
+    # kill nwg-look
+    pkill -P "$$" nwg-look #lxappearance
     sleep 0.5
     # restore hidden windows
 
