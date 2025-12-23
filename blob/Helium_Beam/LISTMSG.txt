@@ -1,5 +1,5 @@
 <b>Configuration name: Helium_Beam</b>
-Released with BunsenLabs Boron
+Released with BunsenLabs Helium
 
 Openbox theme:  Beam
 GTK theme:  Beam

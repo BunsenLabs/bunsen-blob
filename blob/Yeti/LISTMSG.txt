@@ -1,5 +1,5 @@
 <b>Configuration name: Yeti</b>
-Released with BunsenLabs Boron
+Released with BunsenLabs Lithium
 
 Openbox theme:  Yeti
 GTK theme:  Yeti

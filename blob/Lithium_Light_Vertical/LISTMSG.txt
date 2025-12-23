@@ -1,5 +1,5 @@
 <b>Configuration name: Lithium_Light_Vertical</b>
-Released with BunsenLabs Boron
+Released with BunsenLabs Lithium
 
 Openbox theme:  BL-Lithium-light
 GTK theme:  BL-Lithium-light
