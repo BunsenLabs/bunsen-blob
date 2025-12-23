@@ -32,6 +32,7 @@ Recommends: bunsen-pipemenus,
   colordiff,
   conky-all,
   feh,
+  tint2,
   xfce4-panel,
   xfce4-panel-profiles
 Suggests: meld
