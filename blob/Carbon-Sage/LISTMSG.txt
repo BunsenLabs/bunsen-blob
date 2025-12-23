@@ -1,0 +1,36 @@
+<b>Configuration name: Carbon-Sage</b>
+Released with BunsenLabs Carbon
+Saved on Tue 23 Dec 15:54:20 JST 2025
+
+Openbox theme:  bunsen-yaru-sage-dark
+GTK theme:  bunsen-yaru-sage-dark
+Icon Theme: labbe-icons-sage
+
+Background set with feh:
+	/home/john/Pictures/wallpapers/bunsen/default/sage-logo_1440x900.png
+	
+
+Running Conkys:	
+	~/.config/conky/BL-Carbon-conky.conf
+
+xfce4-panel configuration saved:
+	~/.local/share/xfce4-panel-profiles/Carbon-Sage.tar.bz2
+
+No tint2.
+(Any running tint2s will be stopped.)
+
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Bash config:  ~/.bashrc
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Xfce4-terminal xfconf channel: xfce4-terminal
+
