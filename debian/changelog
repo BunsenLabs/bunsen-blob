@@ -1,3 +1,20 @@
+bunsen-blob (13.1-1) carbon; urgency=medium
+
+  * Migrate settings export/import from tint2 to xfce4-panel, using xfconf
+     (existing presets continue to use tint2).
+  * Add new blobs Carbon-Bark and Carbon-Sage.
+  * Add xfconf support for other xfce apps like xfce4-terminal.
+  * Update theme, icon and wallpaper package lists.
+  * Improve yad dialogues.
+  * Remove Lithium preset blob but keep Lithium_Light_Vertical.
+  * Cope with cases where desired wallpaper is not available.
+  * Replace picom.conf in all blobs with current version.
+  * Switch wallpaper setting in all blobs from nitrogen to feh.
+  * Switch from lxappearance to nwg-look.
+  * Add various bugfixes, UI improvements and code cleanups.
+
+ -- John Crawley <john@bunsenlabs.org>  Wed, 24 Dec 2025 15:15:45 +0900
+
 bunsen-blob (13.0-2) carbon; urgency=medium
 
   * Recommends: allow xfce4-panel as alternative to tint2

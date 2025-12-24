@@ -50,7 +50,7 @@ Description: utility to assist management of GUI themes on BunsenLabs
   - GTK theme
   - Icon theme
   - Conky
-  - Xfce4-panel 
+  - Xfce4-panel
   - Desktop background
   - Alt Menu (dmenu)
   - Lightdm login gtk greeter
