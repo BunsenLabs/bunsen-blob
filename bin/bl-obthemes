@@ -867,7 +867,9 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
 
     [[ -z $bgsetter ]] && {
         mtime_feh=$( stat -c %Y "$HOME/$FEHFILE" 2>/dev/null ) || debug "no feh file found"
+        hash feh || { unset mtime_feh; debug "feh is not installed, ignoring $HOME/$FEHFILE";}
         mtime_nitro=$( stat -c %Y "$HOME/$NITROFILE" 2>/dev/null ) || debug "no nitrogen file found"
+        hash nitrogen || { unset mtime_nitro; debug "nitrogen is not installed, ignoring $HOME/$NITROFILE";}
         if [[ -n $mtime_feh && -n $mtime_nitro ]]
         then
             debug "both feh and nitrogen have wallpaper settings"
@@ -881,7 +883,7 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
                     debug "feh file is more than 1 day newer than nitrogen"
                     bgsetter=FEH
                 else
-                    debug "nitrogen file ismore than 1 day newer than feh"
+                    debug "nitrogen file is more than 1 day newer than feh"
                     bgsetter=NITROGEN
                 fi
             else
@@ -892,15 +894,17 @@ function getBg(){    # Find if feh, nitrogen or other was used. Save config file
                 case $? in
                 0)
                     bgsetter=FEH
+                    touch "$HOME/$FEHFILE" # make selected file newest for next time
                     ;;
                 2)
                     bgsetter=NITROGEN
+                    touch "$HOME/$NITROFILE"
                     ;;
                 3)
                     bgsetter=None
                     ;;
                 1)
-                    exit 0 # this button is disabled - LISTMSG display offers chance to exit
+                    exit 0 # this button is disabled because LISTMSG display dialogue offers chance to exit
                     ;;
                 esac
             fi
@@ -2564,6 +2568,7 @@ function restoreLightdm(){   # need sudo to restore lightdm-gtk-greeter.conf
     done
 }
 
+# TODO cp preserve permissions?
 # $1 [$2...] are relative paths passed from displayBlobs()
 # THEMEPATH is global set by displayBlobs()
 # If source is directory, its contents will be copied to the equivalent user directory.
