@@ -2,7 +2,7 @@
 #
 #    bl-obthemes: script to save or restore various GUI theme settings
 #    Copyright (C) 2015-2020 damo    <damo@bunsenlabs.org>
-#                  2018-2025 John Crawley <john@bunsenlabs.org>
+#                  2018-2026 John Crawley <john@bunsenlabs.org>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -175,10 +175,11 @@ STDOBPATH="$HOME/.config/openbox" # used by vanilla (not BL) openbox sessions
 RCFILE="$OBPATH/rc.xml" # used from BL Carbon
 OLDRCFILE="$STDOBPATH/bl-rc.xml" # up to Boron, used the BunsenLabs file name
 #STDRCFILE="$STDOBPATH/rc.xml" # if it exists, used by vanilla (not BL) openbox sessions (and ignored by this script)
+XFCONFPATH=".config/xfce4/xfconf/xfce-perchannel-xml"
 GTK2=".gtkrc-2.0"
 GTK2MINE=".gtkrc-2.0.mine"
 GTK3=".config/gtk-3.0"
-GTK3x=".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-notifyd.xml"
+GTK3x="$XFCONFPATH/xfce4-notifyd.xml"
 FEHFILE=".fehbg"
 NITROFILE=".config/nitrogen/bg-saved.cfg"
 DMENU=".config/dmenu/dmenu-bind.sh"
@@ -815,30 +816,27 @@ function saveDconf(){ # passed dconf directory as #1 and name of app (for dumpfi
     fi
 }
 
-# CONFIGDIR is global set by setName()
-saveXfconf(){ # passed xfconf channel as $1 and name of app as $2 (usually the same)
-    local xfchan appname dumpfile
+# just save the xml file, it's enough
+saveXfconf(){ # passed xfconf channel as $1 and user-friendly name of app as $2
+    local xfchan appname xmlfile chkchan
     xfchan=$1
     appname=$2
-    mkdir -p "$CONFIGDIR/xfconf" || return 1
-    dumpfile="$CONFIGDIR/xfconf/${appname// /_}" # remove any spaces from name
-    xfconf-query -c "$xfchan" -lv > "$dumpfile" || return 1
-    if [[ -s $dumpfile ]]
-    then
-        grep -q '<<UNSUPPORTED>>' "$dumpfile" && {
-            echo -e "${0}: ${dumpfile} contains some unusable array properties, deleting\n" >&2
-            rm "$dumpfile"
-            yad_warning "Cannot save settings for $appname in xfconf channel $xfchan"
-            return 1
-        }
-        debug "Saved xfconf channel $xfchan to $dumpfile"
-    elif [[ -e $dumpfile ]]
-    then
-        debug "xfconf $xfchan is empty, created empty file $dumpfile"
-    else
-        echo -e "$0: failed to create ${dumpfile}\n" >&2
+    xmlfile="${XFCONFPATH}/${xfchan}.xml"
+    # shellcheck disable=SC2015
+    chkchan=$(xmlstarlet sel -t -v '/channel/@name' "$xmlfile" 2>/dev/null) && [[ -n $chkchan ]] || {
+        echo "${0}: Could not parse channel name from $xmlfile" >&2
         return 1
-    fi
+    }
+    [[ $chkchan != "$xfchan" ]] && {
+        echo "${0}: Channel name from $xmlfile $chkchan does not match passed channel name $xfchan" >&2
+        return 1
+    }
+
+    saveFiles "$xmlfile" || {
+        echo -e "$0: Failed to save $appname config file ${xmlfile}\n" >&2
+        return 1
+    }
+    debug "Saved xfconf channel $xfchan to $CONFIGDIR/user/$xmlfile"
 }
 
 # prints newest of files in "$@", returns 1 if no file is passed
@@ -1647,7 +1645,7 @@ function checkTerm(){
 #        pickterm='Xfce4-terminal'
 #        ;;
     /usr/bin/xfce4-terminal.wrapper)
-        if [[ -f $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-terminal.xml ]]; then # only from Debian Trixie
+        if [[ -f $HOME/$XFCONFPATH/xfce4-terminal.xml ]]; then # only from Debian Trixie
             termfile='%xfconf%xfce4-terminal'
         elif [[ -f $HOME/.config/xfce4/terminal/terminalrc ]]; then
             termfile='.config/xfce4/terminal/terminalrc'
@@ -2726,39 +2724,60 @@ function restoreDconf(){
     }
 }
 
-# THEMEPATH and BKP_SFX are globals set by displayBlobs() and restoreSettings() respectively.
+# THEMEPATH is a global set by displayBlobs().
 # xfchan and appname passed as $1 and $2 from restoreSettings()
 # xfchan is an xfconf channel, not a file path.
 restoreXfconf(){
-    local xfchan=$1 appname=$2 src_file bkpdir bkp_file current_state blob_state
-    src_file="$THEMEPATH/xfconf/${appname// /_}"
-    [[ -r $src_file ]] || {
-        echo -e "$0: cannot find readable xfconf config $src_file for ${appname}\n" >&2
+    local xfchan=$1 appname=$2 xmlpath xmlfile userxml restore
+    xmlpath="$XFCONFPATH/${xfchan}.xml"
+    xmlfile="$THEMEPATH/user/$xmlpath"
+    [[ -r $xmlfile ]] || {
+        echo -e "$0: cannot find readable xfconf xml file for channel $xfchan\n" >&2
         return 1
     }
-    bkpdir="$HOME/.config/xfconf-backups"
-    bkp_file="$bkpdir/${appname// /_}${BKP_SFX}"
-    current_state=$( xfconf-query -c "$xfchan" -lv ) || return 1
-    blob_state=$(< "$src_file" )
-    [[ "$current_state" = "$blob_state" ]] && { # including when both are empty, ie default state
+    # shellcheck disable=SC2015
+    chkchan=$(xmlstarlet sel -t -v '/channel/@name' "$xmlfile" 2>/dev/null) && [[ -n $chkchan ]] || {
+        echo -e "${0}: Could not parse channel name from ${xmlfile}\n" >&2
+        return 1
+    }
+    [[ $chkchan != "$xfchan" ]] && {
+        echo -e "${0}: Channel name from $xmlfile $chkchan does not match passed channel name ${xfchan}\n" >&2
+        return 1
+    }
+    userxml="$HOME/$xmlpath"
+    diff -BEbZ "$xmlfile" "$userxml" >/dev/null || {
         debug "${appname}: no need to restore xfconf, settings are the same."
         return 0
     }
-    [[ -n $current_state ]] && {
-        mkdir -p "$bkpdir" || return 1
-        debug "${appname}: backing up xfconf channel ${xfchan} to $bkp_file"
-        printf '%s\n' "$current_state" > "$bkp_file" || return 1
+
+    # in case xfconf restore fails, also directly copy in xml file
+    # (it will be overwritten by xfconf when running the restore commands)
+    debug "Making user copy of $xmlfile in case xfconf restore fails:"
+    restoreFiles "$xmlpath" || {
+        echo -e "$0: failed to copy $xmlfile to user config\n" >&2
+        return 1
     }
-    [[ -n $blob_state ]] && {
-        debug "${appname}: restoring xfconf settings from $src_file"
-        while read -r path value
-        do
-            xfconf-query -c "$xfchan" -p "$path" -s "$value" -n || {
-                echo -e "${0}: ERROR setting xfconf channel ${xfchan} property ${path} to value ${value}\n" >&2
-                return 1
-            }
-        done < "$src_file"
+    
+    debug "${appname}: restoring xfconf settings from $xmlfile"
+
+    restore=$(mktemp --suffix=-xfconf-restore.sh) || {
+        echo -e "${0}: Failed to create temp file\n" >&2
+        return 1
     }
+    tempfiles+=("$restore") # all tempfiles will be deleted in 'cleanup' EXIT trap
+    hash xml2xfconf || {
+        echo -e "${0}: Cannot find command xml2xfconf\n" >&2 # xml2xfconf is shipped in bunsen-utilities, which this package depends on
+        return 1
+    }
+    xml2xfconf -x "$xmlfile" > "$restore" || {
+        echo -e "${0}: Failed to generate restore commands from ${xmlfile}\n" >&2
+        return 1
+    }
+    debug "xfconf restore commands are in temporary file $restore
+    Now restoring to xfconf database...
+"
+    bash "$restore"
+    rm "$restore"
 }
 
 # This function is run in displayBlobs() below
@@ -3304,6 +3323,7 @@ function displayBlobs(){
             exit 1
         fi
 
+# TODO do not try sameFiles() if CURRENTSESSDIR is unset
         case $RET in
             0)  sameFiles "$CURRENTSESSDIR/user" "$HOME" || {
                     while true; do
