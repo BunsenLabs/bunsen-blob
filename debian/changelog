@@ -1,3 +1,11 @@
+bunsen-blob (13.2-1) carbon; urgency=medium
+
+  * Rename "blob" directory to "blobs", update script and docs.
+  * Rework xfconf settings restore using new utility xml2xfconf.
+  * Add EXIT trap to remove all temporary files.
+
+ -- John Crawley <john@bunsenlabs.org>  Mon, 05 Jan 2026 16:33:30 +0900
+
 bunsen-blob (13.1-1) carbon; urgency=medium
 
   * Migrate settings export/import from tint2 to xfce4-panel, using xfconf
