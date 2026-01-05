@@ -1517,6 +1517,7 @@ function getScrot(){
     grep -q "CONKY" "$SETTINGS" || {
         conkyFLAG=0    # Conkys not to be saved
         tmpConky=$(mktemp --tmpdir blob.XXXX)
+        tempfiles+=("$tmpConky")
         getConky --tmp "$tmpConky" # save current conky session to restore after taking scrot
         debug "Hiding Conkys - they are not to be saved to this BLOB."
         safeKill conky
@@ -1524,6 +1525,7 @@ function getScrot(){
     grep -q "TINT2" "$SETTINGS" || {
         tint2FLAG=0    # Tint2s not to be saved
         tmpTint=$(mktemp --tmpdir blob.XXXX)
+        tempfiles+=("$tmpTint")
         getTint --tmp "$tmpTint" # save current tint2 session to restore after taking scrot
         debug "Hiding tint2s - they are not to be saved to this BLOB"
         safeKill tint2
@@ -1764,6 +1766,7 @@ function checkICONS(){ # check if icon theme is still present
         then
             local retfile retval
             retfile="$( mktemp )"
+            tempfiles+=("$retfile")
             bl-install -f "$retfile" "$pkg"
             # sleep 0.3 # allow time for bl-install to write to $retfile (now done in bl-install)
             retval="$(<"$retfile")"
@@ -1803,6 +1806,7 @@ function checkGTK(){    # check if gtk theme is still present
         then
             local retfile retval
             retfile="$( mktemp )"
+            tempfiles+=("$retfile")
             bl-install -f "$retfile" "$pkg"
             # sleep 0.3 # allow time for bl-install to write to $retfile (now done in bl-install)
             retval="$(<"$retfile")"
@@ -2076,6 +2080,7 @@ function checkWallpaper(){
         0)
             local retfile retval
             retfile="$( mktemp )"
+            tempfiles+=("$retfile")
             bl-install -f "$retfile" "$pkg"
             # sleep 0.3 # allow time for bl-install to write to $retfile (now done in bl-install)
             retval="$(<"$retfile")"
@@ -2455,6 +2460,7 @@ Any running tint2s will now be stopped'
         then
             local retfile retval
             retfile="$( mktemp )"
+            tempfiles+=("$retfile")
             bl-install -f "$retfile" 'tint2'
             retval="$(<"$retfile")"
             rm "$retfile"
@@ -2632,6 +2638,7 @@ function restoreFileAbs(){
     grep -qF "$HOME_MARKER" "$src_file" && {
         src_content=$(< "$src_file" )
         tmpsrc="$(mktemp)" || return 1
+        tempfiles+=("$tmpsrc")
         echo "${src_content//$HOME_MARKER/$HOME}" > "$tmpsrc"
         src_file=$tmpsrc
         extra_txt=' (home path adjusted)'
