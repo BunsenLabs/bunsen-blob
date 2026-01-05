@@ -1,0 +1,30 @@
+<b>Configuration name: Helium_Flatish_Grey</b>
+Released with BunsenLabs Helium
+
+Openbox theme:  Bunsen-He-flatish
+GTK theme:  Bunsen-He-flatish
+Icon Theme: Paper-Bunsen
+
+Background set with nitrogen:
+	/usr/share/images/bunsen/wallpapers/default/tile.png
+
+Running Conkys:
+	~/.config/conky/BL-Grey-conky.conf
+
+Running Tint2s:
+	~/.config/tint2/grey.tint2rc
+
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Terminator config:  ~/.config/terminator/config
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf
+

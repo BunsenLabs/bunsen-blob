@@ -1,0 +1,34 @@
+<b>Configuration name: Boron-Darkred</b>	
+Released with BunsenLabs Boron
+Saved on Mon 20 Nov 18:05:16 JST 2023
+Edited on Sun 21 Dec 17:52:30 JST 2025
+
+Openbox theme:  Boron-darkred
+GTK theme:  Boron-darkred
+Icon Theme: Numix-Bunsen-Circle-darkred
+
+Background set with nitrogen:
+	/usr/share/images/bunsen/wallpapers/default/Ruby-flame-1920x1080.png
+	
+
+Running Conkys:	
+	~/.config/conky/BL-Boron-conky.conf
+
+Running Tint2s:	
+	~/.config/tint2/boron-dark.tint2rc
+
+dmenu config:  ~/.config/dmenu/dmenu-bind.sh
+
+Lightdm config:  /etc/lightdm/lightdm-gtk-greeter.conf
+(password will be needed to restore)
+
+X config:  ~/.Xresources
+
+Bash config:  ~/.bashrc
+
+Compositor settings: ~/.config/picom.conf
+
+jgmenu settings: ~/.config/jgmenu/jgmenurc
+
+Lxterminal config:  ~/.config/lxterminal/lxterminal.conf
+
