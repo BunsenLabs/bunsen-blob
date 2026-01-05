@@ -3423,6 +3423,15 @@ function cleanup(){
     elif [[ $1 = save ]];then
         saveSettings
     fi
+
+    # run this section regardless of options
+    (( ${#tempfiles[@]} > 0 )) && {
+        for i in "${tempfiles[@]}"
+        do
+            [[ -z "$i" ]] && continue
+            rm -f "$i"
+        done
+    }
 }
 
 ###################### END FUNCTIONS ###################################
@@ -3435,6 +3444,10 @@ function cleanup(){
 # check not running as root, test for openbox session startup file
 # sets OBSESSION
 firstChecks
+
+tempfiles=() # these will be removed on EXIT trap
+
+trap 'cleanup' EXIT HUP INT TERM QUIT # 'cleanup' defined just above
 
 # test for blobthemes config directory, create if it doesn't exist
 mkdir -p "$USRCONFIGPATH"
