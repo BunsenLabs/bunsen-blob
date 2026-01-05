@@ -164,8 +164,9 @@ KEYDOWN=10                  # adjust this for where "Preferences" is in the menu
 MOUSECMD=(click 3)          # mouse r-click
 
 ### GLOBALS
-USRCONFIGPATH="$HOME/.config/blob"
-SYSCONFIGPATH="/usr/share/bunsen/blob/blob"
+USRCONFIGPATH="$HOME/.config/blobs"
+OLDUSRCONFIGPATH="$HOME/.config/blob"
+SYSCONFIGPATH="/usr/share/bunsen/blob/blobs"
 CURSESSFILE="$USRCONFIGPATH/current"
 
 ### USER CONFIG VARIABLES TO BE SAVED AND RESTORED
@@ -3437,6 +3438,16 @@ firstChecks
 
 # test for blobthemes config directory, create if it doesn't exist
 mkdir -p "$USRCONFIGPATH"
+
+# change user "blob" directory to "blobs"
+[[ -d $OLDUSRCONFIGPATH ]] && {
+    [[ -n $( ls -A "$OLDUSRCONFIGPATH" ) ]] && {
+        debug "Moving any stored Blobs from $OLDUSRCONFIGPATH to $USRCONFIGPATH"
+        ( shopt -s dotglob; mv "$OLDUSRCONFIGPATH"/* "$USRCONFIGPATH" )
+    }
+    debug "Removing old blob directory $OLDUSRCONFIGPATH, now using $USRCONFIGPATH"
+    rm -r "$OLDUSRCONFIGPATH"
+}
 
 # create file to hold most recent saved configuration name
 if [[ ! -f $CURSESSFILE ]];then

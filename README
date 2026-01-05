@@ -27,10 +27,10 @@ A Screenshot is saved (Windows are hidden briefly so the image
                        or Conkys which are running, and a representive
                        menu and lxappearance open)
 
-User saved themes are stored in ~/.config/blob.
-Some system preset themes are stored in /usr/share/bunsen/utilities/blob.
+User saved themes are stored in ~/.config/blobs.
+Some system preset themes are stored in /usr/share/bunsen/utilities/blob/blobs.
 The contents of that directory will be displayed to the user
-along with any that might be in ~/.config/blob.
+along with any that might be in ~/.config/blobs.
 If a user and preset theme have identical names,
 the system preset will be hidden.
 
