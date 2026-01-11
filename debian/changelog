@@ -1,3 +1,10 @@
+bunsen-blob (13.2.2-1) carbon; urgency=medium
+
+  * Further adjust Carbon presets.
+  * Update copyright year.
+
+ -- John Crawley <john@bunsenlabs.org>  Sun, 11 Jan 2026 14:53:20 +0900
+
 bunsen-blob (13.2.1-1) carbon; urgency=medium
 
   * Make some small tweaks to the Carbon preset blobs.
