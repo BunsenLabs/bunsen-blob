@@ -1,3 +1,9 @@
+bunsen-blob (13.2.1-1) carbon; urgency=medium
+
+  * Make some small tweaks to the Carbon preset blobs.
+
+ -- John Crawley <john@bunsenlabs.org>  Sun, 11 Jan 2026 14:25:52 +0900
+
 bunsen-blob (13.2-1) carbon; urgency=medium
 
   * Rename "blob" directory to "blobs", update script and docs.
