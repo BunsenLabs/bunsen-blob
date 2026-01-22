@@ -2478,8 +2478,13 @@ Any running tint2s will now be stopped'
                 yad_warning "tint2 install failed."
                 return 1
             }
+        else
+            debug 'User chose not to install tint2'
+            yad_warning 'Tint2 settings will not be restored'
+            return 0
         fi
         debug 'installed tint2'
+        yad_prompt 'Tint2 will now be started.\nTo run tint2 after every login, edit\n~/.config/bunsen/autostart\nenabling bl-tint2-session' "$OK"
     }
 
 #    [[ $1 = --legacy ]] && { # this option means similar tint2 and xfce4-panel settings have  been provided
