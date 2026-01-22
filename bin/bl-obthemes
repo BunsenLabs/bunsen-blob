@@ -2638,10 +2638,6 @@ function restoreFileAbs(){
     target_file="$2"
     target_file_canon="$(readlink -f "$target_file")" # canonical path
     [[ -L "$target_file" ]] && debug "$target_file is a symbolic link, pointing to $target_file_canon"
-    [[ -w "$target_file" ]] || {
-        echo -e "$0: Cannot restore $src_file because $target_file is not writable.\n" >&2
-        return 1
-    }
     target_dir="${target_file%/*}"
     mkdir -p "$target_dir" || return 1
     extra_txt=''
@@ -2654,6 +2650,10 @@ function restoreFileAbs(){
         extra_txt=' (home path adjusted)'
     }
     if [[ -e $target_file ]];then        # backup config first
+        [[ -w "$target_file" ]] || {
+            echo -e "$0: Cannot restore $src_file because $target_file is not writable.\n" >&2
+            return 1
+        }
         diff -qBEbZ "$src_file" "$target_file" >/dev/null && {
             debug "  $target_file and ${src_file}${extra_txt} are identical, no need to restore."
             return 0
