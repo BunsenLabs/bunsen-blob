@@ -2132,16 +2132,26 @@ function parseNitrofile(){ # get first image set in a nitrogen file
 }
 
 # $1 is path to feh file
-function parseFehfile(){ # get first image set in a feh file
-    # get fields between single quotes
-    while read -r line;do
-        [[ -r $line ]] || {
-            continue
-        }
-        printf '%s' "${line}"
-        return 0
-    done < <(grep -o "'[^']*'" "$1" | sed "s/'//g" 2>/dev/null)
-}
+parseFehfile()( # this function is run in a subshell, so local feh() cannot "leak" to rest of script
+    local fehfile=$1
+    [[ -r $fehfile ]] || { echo "cannot read $fehfile" >&2; return 1;}
+    # this local feh() uses the shell to parse the feh file, observing quoting etc
+    # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+    feh() {
+        while (( "$#" )); do
+          case $1 in
+            /*) # get the first absolute filepath
+              printf '%s\n' "$1"
+              return 0
+              ;;
+          esac
+          shift
+        done
+        return 1 # no filepath found
+    }
+    # shellcheck source=/dev/null
+    . "$fehfile"  # Calls local feh(), inherits its exit status
+)
 
 function restoreBg(){    # $1 = $VAL from restoreSettings(), img is inherited from restoreSettings()
     local failed=false
