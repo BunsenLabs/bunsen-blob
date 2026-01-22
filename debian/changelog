@@ -1,3 +1,12 @@
+bunsen-blob (13.3-1) carbon; urgency=medium
+
+  * Fix broken parsing of feh .fehbg file.
+  * Bugfix to function that restores files.
+  * Add more small tweaks to Carbon blobs.
+  * Add some notifications when restoring tint2 settings.
+
+ -- John Crawley <john@bunsenlabs.org>  Thu, 22 Jan 2026 14:43:21 +0900
+
 bunsen-blob (13.2.2-1) carbon; urgency=medium
 
   * Further adjust Carbon presets.
