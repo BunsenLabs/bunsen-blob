@@ -2378,13 +2378,13 @@ function restoreConky(){    # $1 = $VAL from restoreSettings()
     fi
 }
 
-restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (usually empty but may be "none")
+restoreXfce4Panel(){    # $1 = $VAL from restoreSettings() (empty, "true" or "none")
     local xfpdir xfpfile missing_commands=() i=''
 
     [[ $1 = 'none' ]] && {
-        debug 'No xfce4-panel was running in this saved session.
+        debug '\n No xfce4-panel was running in this saved session.
 Any running xfce4-panel will now be stopped'
-        pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
+        pgrep -x -u "$USER" xfce4-panel >/dev/null && xfce4-panel --quit
         return 0
     }
 
@@ -2398,14 +2398,14 @@ Any running xfce4-panel will now be stopped'
     ${missing_commands[*]}
 to use xfce4-panel settings."
         then
-            debug 'Continuing without xfce4-panel settings'
+            debug '\n Continuing without xfce4-panel settings\n'
             return 0
         else
             exit 1
         fi
     }
 
-    debug "restoring xfce4-panel settings"
+    debug "\n Restoring xfce4-panel settings\n"
 
     xfpdir="$THEMEPATH/user/$XFPANELPROFDIR"
     xfpfile="${themename}.tar.bz2"
@@ -2419,15 +2419,21 @@ to use xfce4-panel settings."
         return 1
     }
 
-    pgrep -x -u "$USER" xfce4-panel || {
-        debug "xfce4-panel not running, starting it now"
-        forkncheck xfce4-panel
+    # if xfce4-panel is running when new profile is loaded,
+    # some plugins (eg battery) may not have their configurations updated
+    safeKill xfconfd
+    safeKill xfce4-panel || {
+        echo -e "$0: failed to kill xfce4-panel for reconfiguration" >&2
+        return 1
     }
-
     debug "loading new xfce4-panel profile"
     xfce4-panel-profiles load "$HOME/$XFPANELPROFDIR/$xfpfile" || {
         echo -e "$0: failed to load xfce4-panel profile ${HOME}/${XFPANELPROFDIR}/${xfpfile}\n" >&2
         return 1
+    }
+    pgrep -x -u "$USER" xfce4-panel >/dev/null || {
+        debug "xfce4-panel not running, starting it now"
+        forkncheck xfce4-panel
     }
 
     debug "\n Restored Xfce4-panel\n"
@@ -2486,31 +2492,6 @@ Any running tint2s will now be stopped'
         debug 'installed tint2'
         yad_prompt 'Tint2 will now be started.\nTo run tint2 after every login, edit\n~/.config/bunsen/autostart\nenabling bl-tint2-session' "$OK"
     }
-
-#    [[ $1 = --legacy ]] && { # this option means similar tint2 and xfce4-panel settings have  been provided
-#        hash 'xfce4-panel' && {
-#            debug 'xfce4-panel is installed'
-#            msg='Tint2 settings and xfce4-panel settings are both provided in this BLOB.
-#If you restore tint2, xfce4-panel will not be used \nand any running instances of xfce4-panel will be stopped.
-#If you abort restoring tint2, xfce4-panel will be used instead.
-#'
-#            yad_question "$msg" --button="Restore tint2:0" --button="Abort restoring tint2:1" || {
-#                debug 'Aborted restoring tint2 settings \n restoring xfce4-panel instead.'
-#                restoreXfce4Panel && return 0 || return 1
-#            }
-#            pgrep -x -u "$USER" xfce4-panel && xfce4-panel --quit
-#            msg='If you want tint2 to be used the next time you login
-#you will need to edit ~/.config/bunsen/autostart
-
-#Uncomment this line:
-#( sleep 2; bl-tint2-session ) &amp;
-#and comment out this line to prevent xfce4-panel from starting:
-#xfce4-panel &amp;
-#'
-#            yad_prompt "$msg" "$OK"
-#        }
-#        shift
-#    }
 
     tintcmds="${1//;/$'\n'}"
     user_tintsession="$HOME/$TINTSESSION"
@@ -3088,6 +3069,7 @@ restoreSettings() {
     jgmenu_sync_gtk=false
     restore_gtk=false
     restore_icons=false
+    restore_xfce4_panel=false
     # Go through user's selected choices.
     while read -r -u "$fd" label # read from a custom file descriptor so any terminal launched by child process still has access to stdin
     do
@@ -3107,7 +3089,7 @@ restoreSettings() {
                                 ;;
             "$PICKCONKY"    )   restoreConky "$VAL"
                                 ;;
-            "$PICKXFPANEL"  )   restoreXfce4Panel "$VAL"
+            "$PICKXFPANEL"  )   restore_xfce4_panel="{VAL:-true}"
                                 ;;
             "$PICKTINT"     )   restoreTint2 "$VAL"
                                 ;;
@@ -3141,8 +3123,9 @@ restoreSettings() {
     done {fd}<<EOF
 $CHOICE
 EOF
-    exec {fd}<&-
+    exec {fd}<&- # close custom file descriptor
 
+    # in this case, tint2 or xfpanel were not offered in the restore dialogue
     [[ $killxfpanel = true ]] && restoreXfce4Panel none
     [[ $killtints = true ]] && restoreTint2 none
 
@@ -3157,6 +3140,10 @@ EOF
         if [[ $restore_icons != 'false' ]]; then
             restoreIcons "$restore_icons" # only icon theme will be set
         fi
+    fi
+
+    if [[ $restore_xfce4_panel != 'false' ]]; then # restoring xfce4 panel after any GTK3 changes have been made (eg icon scaling)
+        restoreXfce4Panel "$restore_xfce4_panel"
     fi
 
     hash jgmenu_run 2>/dev/null && [[ $jgmenu_sync = 'true' ]] && {
