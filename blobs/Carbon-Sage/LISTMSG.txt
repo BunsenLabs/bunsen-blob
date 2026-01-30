@@ -1,13 +1,13 @@
 <b>Configuration name: Carbon-Sage</b>
 Released with BunsenLabs Carbon
-Saved on Tue 23 Dec 15:54:20 JST 2025
+Saved on Thu 29 Jan 17:02:17 JST 2026
 
 Openbox theme:  bunsen-yaru-sage-dark
 GTK theme:  bunsen-yaru-sage-dark
 Icon Theme: labbe-icons-sage
 
 Background set with feh:
-	/usr/share/images/bunsen/wallpapers/default/sage-logo_1440x900.png
+	/usr/share/images/bunsen/wallpapers/default/sage-logo_1920x1080.png
 	
 
 Running Conkys:	

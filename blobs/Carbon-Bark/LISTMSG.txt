@@ -1,13 +1,13 @@
 <b>Configuration name: Carbon-Bark</b>	
 Released with BunsenLabs Carbon
-Saved on Tue 23 Dec 16:05:20 JST 2025
+Saved on Thu 29 Jan 16:46:54 JST 2026
 
 Openbox theme:  bunsen-yaru-bark-dark
 GTK theme:  bunsen-yaru-bark-dark
 Icon Theme: labbe-icons-bark
 
 Background set with feh:
-	/usr/share/images/bunsen/wallpapers/default/bark-logo_1440x900.png
+	/usr/share/images/bunsen/wallpapers/default/bark-logo_1920x108.png
 	
 
 Running Conkys:	
