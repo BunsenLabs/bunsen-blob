@@ -1,3 +1,12 @@
+bunsen-blob (13.4-1) carbon; urgency=medium
+
+  * bl-obthemes: reconfigure xfce4-panel handling so that
+     it is restored after any GTK3 settings changes have been made.
+  * Update Carbon-Bark and Carbon-Sage presets to reflect latest changes
+     in bunsen-configs.
+
+ -- John Crawley <john@bunsenlabs.org>  Sat, 31 Jan 2026 18:03:25 +0900
+
 bunsen-blob (13.3-1) carbon; urgency=medium
 
   * Fix broken parsing of feh .fehbg file.
