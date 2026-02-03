@@ -1,4 +1,4 @@
-<b>Configuration name: Carbon-Bark</b>	
+<b>Configuration name: Carbon-Bark</b>
 Released with BunsenLabs Carbon
 Saved on Thu 29 Jan 16:46:54 JST 2026
 
@@ -7,14 +7,13 @@ GTK theme:  bunsen-yaru-bark-dark
 Icon Theme: labbe-icons-bark
 
 Background set with feh:
-	/usr/share/images/bunsen/wallpapers/default/bark-logo_1920x108.png
-	
+    /usr/share/images/bunsen/wallpapers/default/bark-logo_1920x1080.png
 
-Running Conkys:	
-	~/.config/conky/BL-Carbon-conky.conf
+Running Conkys:
+    ~/.config/conky/BL-Carbon-conky.conf
 
 xfce4-panel configuration saved:
-	~/.local/share/xfce4-panel-profiles/Carbon-Bark.tar.bz2
+    ~/.local/share/xfce4-panel-profiles/Carbon-Bark.tar.bz2
 
 No tint2.
 (Any running tint2s will be stopped.)
@@ -33,4 +32,3 @@ Compositor settings: ~/.config/picom.conf
 jgmenu settings: ~/.config/jgmenu/jgmenurc
 
 Xfce4-terminal xfconf channel: xfce4-terminal
-
